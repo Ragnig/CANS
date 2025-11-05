@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/CANS/static/css/main.e6c13ad2.css",
-    "main.js": "/CANS/static/js/main.168be847.js",
+    "main.js": "/CANS/static/js/main.7072d7ac.js",
     "index.html": "/CANS/index.html",
     "main.e6c13ad2.css.map": "/CANS/static/css/main.e6c13ad2.css.map",
-    "main.168be847.js.map": "/CANS/static/js/main.168be847.js.map"
+    "main.7072d7ac.js.map": "/CANS/static/js/main.7072d7ac.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.168be847.js"
+    "static/js/main.7072d7ac.js"
   ]
 }
