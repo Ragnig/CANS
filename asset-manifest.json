@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/CANS/static/css/main.e6c13ad2.css",
+    "main.js": "/CANS/static/js/main.895e57d0.js",
+    "index.html": "/CANS/index.html",
+    "main.e6c13ad2.css.map": "/CANS/static/css/main.e6c13ad2.css.map",
+    "main.895e57d0.js.map": "/CANS/static/js/main.895e57d0.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.895e57d0.js"
+  ]
+}
