@@ -1930,20 +1930,53 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
     setCurrentGlobalIndex((i) => Math.min(flatRows.length - 1, i + 1));
   };
 
-  // compute which sections are fully answered -> used to show green tick badge
-  const completedSections = useMemo(() => {
+  // Map row id -> title for friendly messages
+  const rowTitlesById = useMemo(() => {
+    const m = new Map();
+    visibleSections.forEach((s) => s.rows.forEach((r) => m.set(r.id, r.title)));
+    return m;
+  }, [visibleSections]);
+
+  // Determine which rows require a description (score 2 or 3) but have empty notes.
+  // We'll use this to block form submission and show per-textarea error.
+  const missingDescriptions = useMemo(() => {
     const set = new Set();
     visibleSections.forEach((s) => {
-      const allAnswered = (s.rows || []).every((r) => {
+      (s.rows || []).forEach((r) => {
         const a = answers[r.id];
-        if (!a) return false;
-        // consider answered when unknown/not-applicable is set OR score chosen OR notes provided
-        return a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.notes && a.notes.trim().length > 0);
+        if (!a) return;
+        // only require description when score is 2 or 3 and not unk/na
+        const score = a.score;
+        if (!a.unk && !a.na && (score === 2 || score === 3)) {
+          if (!a.notes || a.notes.trim().length === 0) set.add(r.id);
+        }
       });
-      if (allAnswered) set.add(s.id);
     });
     return set;
   }, [visibleSections, answers]);
+
+  // compute which sections are fully answered -> used to show green tick badge
+  // Updated: a section is "completed" only when:
+  // - every row in the section is answered (score / unk / na / notes)
+  // - AND none of the rows in the section are missing a required description (i.e., not present in missingDescriptions)
+  const completedSections = useMemo(() => {
+    const set = new Set();
+    visibleSections.forEach((s) => {
+      const allAnsweredAndDescribed = (s.rows || []).every((r) => {
+        const a = answers[r.id];
+        if (!a) return false;
+        // must be answered in some way
+        const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.notes && a.notes.trim().length > 0);
+        if (!answered) return false;
+        // if this row requires description (score 2/3 and not unk/na), it must not be missing
+        const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
+        if (requiresDescription && (!a.notes || a.notes.trim().length === 0)) return false;
+        return true;
+      });
+      if (allAnsweredAndDescribed) set.add(s.id);
+    });
+    return set;
+  }, [visibleSections, answers, missingDescriptions]);
 
   // Formatting function -> your JSON schema
   function formatSchemaJSON(overview, answers) {
@@ -2146,6 +2179,14 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
     const missing = requiredOverviewFields.filter((k) => !formData[k] || String(formData[k]).trim() === "");
     if (missing.length) {
       alert("Please fill the required fields: " + missing.join(", "));
+      return;
+    }
+
+    // Block submission if any required description is missing
+    if (missingDescriptions.size > 0) {
+      // Build friendly message with titles
+      const titles = [...missingDescriptions].map((id) => rowTitlesById.get(id) || `Question ${id}`);
+      alert("Please fill the required Describe field(s) for: " + titles.join(", "));
       return;
     }
 
@@ -2402,8 +2443,22 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
 
                     {shouldShowDescribe && (
                       <div>
-                        <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>Describe</label>
-                        <textarea style={styles.describeArea} placeholder="Explain the description here" value={(answers[currentRow.id] || {}).notes || ""} onChange={(e) => setAnswer(currentRow.id, { notes: e.target.value })} />
+                        <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
+                          Describe <span style={{ color: "#b91c1c", fontWeight: 700 }}>{/* required marker */}*</span>
+                        </label>
+                        {/* highlight the textarea border when description is missing */}
+                        <textarea
+                          style={{
+                            ...styles.describeArea,
+                            border: missingDescriptions.has(currentRow.id) ? "1px solid #f87171" : "1px solid #d1d5db",
+                          }}
+                          placeholder="Explain the description here"
+                          value={(answers[currentRow.id] || {}).notes || ""}
+                          onChange={(e) => setAnswer(currentRow.id, { notes: e.target.value })}
+                        />
+                        {missingDescriptions.has(currentRow.id) && (
+                          <div style={{ color: "#b91c1c", marginTop: 6, fontSize: 13 }}>Description is required for this rating.</div>
+                        )}
                       </div>
                     )}
 
@@ -2429,7 +2484,13 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                 {isSaving ? "Saving..." : isAutosaving ? "Autosaving...": "Save as Draft"}
               </button>
 
-              <button type="button" style={{ ...styles.btnPrimary, ...(isCompleteAllowed ? {} : styles.disabledBtn) }} onClick={handleComplete} disabled={!isCompleteAllowed || isSaving}>
+              <button
+                type="button"
+                style={{ ...styles.btnPrimary, ...(isCompleteAllowed ? {} : styles.disabledBtn) }}
+                onClick={handleComplete}
+                disabled={!isCompleteAllowed || isSaving || missingDescriptions.size > 0}
+                title={missingDescriptions.size > 0 ? "Please fill required Describe fields before submitting" : ""}
+              >
                 {isSaving ? "Submitting..." : "Submit"}
               </button>
             </div>
