@@ -251,7 +251,7 @@ const demoSections = [
               "Mild level of family strengths. Family members are known, but currently none are able to provide emotional or concrete support.",
               "This level indicates a child with no known family strengths. There are no known family members. ",
                 // "Unkown",
-                // "Not Applicable",
+                "N/A Not Applicable",
             ],          
         },
         { id: 21, 
@@ -1091,7 +1091,7 @@ const demoSections = [
                 "This level indicates a person who has been recently victimized (within the past year) but is not in acute risk of re-victimization. This might include physical or sexual abuse, significant psychological abuse by family or friend, extortion or violent crime.",
                 "This level indicates a person who has been recently victimized and is in acute risk of re-victimization. Examples include working as a prostitute or living in an abusive relationship. ",
                 // "Unkown",
-                // "Not Applicable",                
+                "N/A Not Applicable",                
               ],                   
         },
         { id: 94, 
@@ -1102,7 +1102,7 @@ const demoSections = [
                 "Youth has significant job-related problems with attendance, performance or relationships.",
                 "Youth is experiencing severe problems in an employment situation with performance or relationships. Youth may have been fired. ",
                 // "Unkown",
-                // "Not Applicable",                
+                "N/A Not Applicable as the child is not employed.",                
               ],                   
         },
       ],
@@ -1153,7 +1153,7 @@ const demoSections = [
                 "Serious substantiated health or safety hazards (e.g. over crowding, inoperative or unsafe water and utility hazards, vermin, or other health and sanitation concerns including home where drugs are produced/sold or where there is current drug activity)." ,
                 "Substantiated life threatening health or safety hazards (e.g. living in condemned and/or structurally unsound residence; exposed wiring, potential fire/safety hazards, or vermin infestation).", 
                 // "Unkown",
-                // "Not Applicable",
+                "N/A Not applicable",
               ], 
         },
         { id: 99, 
@@ -1498,10 +1498,54 @@ const demoSections = [
          },                        
       ],
     }, 
+    {
+      id:16,
+      title: "Commitment to Permanency Plan Goal - Caregiver",
+      rows: [
+        {
+          id: 129, title: "Collaboration with Other Parents/Caregivers",
+          help: [
+            "Caregiver works with the parent(s) regarding issues of the development and well being of the children. Caregiver supports continual family membership, visitation, and shared parenting. They demonstrate good communication and partnership.",
+            "Generally good caregiver-parental collaboration with occasional difficulties but are willing to work towards better communications and partnership regarding the development and well being of the children.",
+            "Limited adaptive collaboration. Caregiver has moderate problems of communication and collaboration with parent(s) and/or caregivers with regard to issues of the development and well being of the youth.",
+            "Significant difficulties with collaboration. Caregiver has minimal collaboration and destructive or sabotaging communication among any parents and caregivers regarding issues related to the development and well being of the youth.",
+
+          ],
+        },
+        {
+          id: 130, title: "Caregiver Support for Permanency Plan Goal",
+          help: [
+            "Caregiver is completely committed to doing whatever he/she needs to support permanency plan goals, including supporting the parent in moving towards reunification.",
+            "Caregiver is generally committed to doing the required tasks in order to support permanency plan goals, including reunification.",
+            "Caregiver is ambivalent or uncommitted to supporting permanency plan goals, including reunification, at this time.",
+            "Caregiver is uninterested in supporting the current permanency plan goals.",
+          ],
+        },
+        {
+          id: 131, title: "Inclusion of the Child in the Foster Family",
+          help: [
+            "All members of the family view the child as an equal member. Child is included in all family celebrations and events, and child’s accomplishments and milestones are given attention equal to that of other children in the family.",
+            "Most family members accept the child in a welcoming manner, celebrate the child’s accomplishments,and include the child in family events. There may be one family member who treats the child differently, but this has little impact on the child’s well-being; or the child is occasionally left out.",
+            "At least one parent treats the child as an unequal member of the family. The child is sometimes left out of family celebrations, trips, and events. The child’s milestones are not acknowledged in a manner equal to that of other children in the family.",
+            "The child’s status in the foster family is beneath that of other children in the family. The child may be left behind when the family takes trips, and the child’s milestones are ignored when those of other family members are celebrated. Some or all of the family members ignore or resent the child’s presence in the family.",
+          ],
+        },
+      ],
+    },
       {
-      id: 16,
+      id: 17,
       title: "Commitment to Permanency Plan Goal - Biological Parent",
       rows: [
+        { id: 132, title: "Parent Participation in Visitation", 
+          help: [
+            "Parent consistently adheres to all planned visitations and actively participates.",
+            "Parent generally adheres to planned visitations but may sometimes miss or engage in unplanned visitation or always attends but does not actively participate with the child(ren).",
+            "Parent sporadically adheres to planned visitation.",
+            "Parent does not participate in planned visitation.",
+            // "Unkown",
+            // "Not Applicable",
+          ]
+         },
         { id: 133, title: "Relationship/Contact with Caseworker", 
           help: [
             "Parent actively stays in contact with the caseworker and consistently responds to the caseworker’s input and requests.",
@@ -1528,6 +1572,16 @@ const demoSections = [
             "Parent is generally involved in the child’s life while in placement, but still has periods of time where he or she has been less involved or inconsistent.",
             "Parent is involved in child’s life but only has minimal interactions over an extended period of time.",
             "Parent is mostly uninvolved in child’s life; he or she may not interact with the child.",
+            // "Unkown",
+            // "Not Applicable",
+          ]
+         },
+         { id: 136, title: "Commitment to Reunification", 
+          help: [
+            "Parent is doing whatever he/she needs to accomplish in order to be reunified.",
+            "Parent is generally committed to doing the required tasks in order to achieve reunification and has once or twice in the last month failed to follow through consistently (e.g., misses visits, therapy sessions and/or court appearances, etc.)",
+            "Parent appears or reports being ambivalent or uncommitted to reunification at this time.",
+            "Parent is uninterested in achieving reunification at this time.",
             // "Unkown",
             // "Not Applicable",
           ]
