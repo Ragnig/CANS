@@ -1498,10 +1498,54 @@ const demoSections = [
          },                        
       ],
     }, 
+    {
+      id:16,
+      title: "Commitment to Permanency Plan Goal - Caregiver",
+      rows: [
+        {
+          id: 129, title: "Collaboration with Other Parents/Caregivers",
+          help: [
+            "Caregiver works with the parent(s) regarding issues of the development and well being of the children. Caregiver supports continual family membership, visitation, and shared parenting. They demonstrate good communication and partnership.",
+            "Generally good caregiver-parental collaboration with occasional difficulties but are willing to work towards better communications and partnership regarding the development and well being of the children.",
+            "Limited adaptive collaboration. Caregiver has moderate problems of communication and collaboration with parent(s) and/or caregivers with regard to issues of the development and well being of the youth.",
+            "Significant difficulties with collaboration. Caregiver has minimal collaboration and destructive or sabotaging communication among any parents and caregivers regarding issues related to the development and well being of the youth.",
+
+          ],
+        },
+        {
+          id: 130, title: "Caregiver Support for Permanency Plan Goal",
+          help: [
+            "Caregiver is completely committed to doing whatever he/she needs to support permanency plan goals, including supporting the parent in moving towards reunification.",
+            "Caregiver is generally committed to doing the required tasks in order to support permanency plan goals, including reunification.",
+            "Caregiver is ambivalent or uncommitted to supporting permanency plan goals, including reunification, at this time.",
+            "Caregiver is uninterested in supporting the current permanency plan goals.",
+          ],
+        },
+        {
+          id: 131, title: "Inclusion of the Child in the Foster Family",
+          help: [
+            "All members of the family view the child as an equal member. Child is included in all family celebrations and events, and child’s accomplishments and milestones are given attention equal to that of other children in the family.",
+            "Most family members accept the child in a welcoming manner, celebrate the child’s accomplishments,and include the child in family events. There may be one family member who treats the child differently, but this has little impact on the child’s well-being; or the child is occasionally left out.",
+            "At least one parent treats the child as an unequal member of the family. The child is sometimes left out of family celebrations, trips, and events. The child’s milestones are not acknowledged in a manner equal to that of other children in the family.",
+            "The child’s status in the foster family is beneath that of other children in the family. The child may be left behind when the family takes trips, and the child’s milestones are ignored when those of other family members are celebrated. Some or all of the family members ignore or resent the child’s presence in the family.",
+          ],
+        },
+      ],
+    },
       {
-      id: 16,
+      id: 17,
       title: "Commitment to Permanency Plan Goal - Biological Parent",
       rows: [
+        { id: 132, title: "Parent Participation in Visitation", 
+          help: [
+            "Parent consistently adheres to all planned visitations and actively participates.",
+            "Parent generally adheres to planned visitations but may sometimes miss or engage in unplanned visitation or always attends but does not actively participate with the child(ren).",
+            "Parent sporadically adheres to planned visitation.",
+            "Parent does not participate in planned visitation.",
+            // "Unkown",
+            // "Not Applicable",
+          ]
+         },
         { id: 133, title: "Relationship/Contact with Caseworker", 
           help: [
             "Parent actively stays in contact with the caseworker and consistently responds to the caseworker’s input and requests.",
