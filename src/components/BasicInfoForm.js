@@ -1576,6 +1576,16 @@ const demoSections = [
             // "Not Applicable",
           ]
          },
+         { id: 136, title: "Commitment to Reunification", 
+          help: [
+            "Parent is doing whatever he/she needs to accomplish in order to be reunified.",
+            "Parent is generally committed to doing the required tasks in order to achieve reunification and has once or twice in the last month failed to follow through consistently (e.g., misses visits, therapy sessions and/or court appearances, etc.)",
+            "Parent appears or reports being ambivalent or uncommitted to reunification at this time.",
+            "Parent is uninterested in achieving reunification at this time.",
+            // "Unkown",
+            // "Not Applicable",
+          ]
+         },
         { id: 137, title: "Responsibility in Maltreatment", 
           help: [
             "Parent accepts responsibility for his/her role in prior child maltreatment and demonstrates behavior changes that reduce risk of future maltreatment.",
