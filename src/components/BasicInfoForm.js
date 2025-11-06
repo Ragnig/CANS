@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 // import { saveFormToServer } from "../api/saveHandlers";
-
+const API_BASE = "http://localhost:5000";
 /** -------- Demo data placeholders (keep or replace) -------- **/
 const demoOverview = {
   caseId: "",
@@ -251,7 +251,7 @@ const demoSections = [
               "Mild level of family strengths. Family members are known, but currently none are able to provide emotional or concrete support.",
               "This level indicates a child with no known family strengths. There are no known family members. ",
                 // "Unkown",
-                // "Not Applicable",
+                "N/A Not Applicable",
             ],          
         },
         { id: 21, 
@@ -1091,7 +1091,7 @@ const demoSections = [
                 "This level indicates a person who has been recently victimized (within the past year) but is not in acute risk of re-victimization. This might include physical or sexual abuse, significant psychological abuse by family or friend, extortion or violent crime.",
                 "This level indicates a person who has been recently victimized and is in acute risk of re-victimization. Examples include working as a prostitute or living in an abusive relationship. ",
                 // "Unkown",
-                // "Not Applicable",                
+                "N/A Not Applicable",                
               ],                   
         },
         { id: 94, 
@@ -1102,7 +1102,7 @@ const demoSections = [
                 "Youth has significant job-related problems with attendance, performance or relationships.",
                 "Youth is experiencing severe problems in an employment situation with performance or relationships. Youth may have been fired. ",
                 // "Unkown",
-                // "Not Applicable",                
+                "N/A Not Applicable as the child is not employed.",                
               ],                   
         },
       ],
@@ -1153,7 +1153,7 @@ const demoSections = [
                 "Serious substantiated health or safety hazards (e.g. over crowding, inoperative or unsafe water and utility hazards, vermin, or other health and sanitation concerns including home where drugs are produced/sold or where there is current drug activity)." ,
                 "Substantiated life threatening health or safety hazards (e.g. living in condemned and/or structurally unsound residence; exposed wiring, potential fire/safety hazards, or vermin infestation).", 
                 // "Unkown",
-                // "Not Applicable",
+                "N/A Not applicable",
               ], 
         },
         { id: 99, 
@@ -1813,7 +1813,7 @@ const bubblesPerPage = 15;
 /* -------------------- COMPONENT -------------------- */
 export default function BasicInfoForm({ overview = demoOverview, sections = demoSections }) {
   // default date for date input display (ISO yyyy-mm-dd)
-  const todayIso = new Date().toISOString().split("T")[0];
+  const todayIso = new Date().toISOString().split("CST")[0];
   const [formData, setFormData] = useState({
     ...overview,
     dateOfAssessment: overview.dateOfAssessment || todayIso,
@@ -1827,7 +1827,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
       return sections.slice(0, 9);
     }
     if (role.includes("caregiver")) {
-      return sections.filter((s) => s.id >= 10 && s.id <= 16);
+      return sections.filter((s) => s.id >= 10 && s.id <= 17);
     }
     return sections;
   }, [formData.memberRole, sections]);
@@ -1936,7 +1936,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
   // added console.debug so you can see answers in console; ensures anyAnswered toggles correctly
   const setAnswer = (rowId, patch) => {
     setAnswers((prev) => {
-      const next = { ...prev, [rowId]: { ...(prev[rowId] || { score: null, notes: "", unk: false, na: false }), ...patch } };
+      const next = { ...prev, [rowId]: { ...(prev[rowId] || { score: null, description: "", unk: false, na: false }), ...patch } };
       console.debug("answers updated", rowId, patch, next[rowId]);
       return next;
     });
@@ -1958,7 +1958,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
     return Object.keys(answers).some((id) => {
       const a = answers[id];
       if (!a) return false;
-      return a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.notes && a.notes.trim().length > 0);
+      return a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.description && a.description.trim().length > 0);
     });
   }, [answers]);
 
@@ -2002,7 +2002,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
         // only require description when score is 2 or 3 and not unk/na
         const score = a.score;
         if (!a.unk && !a.na && (score === 2 || score === 3)) {
-          if (!a.notes || a.notes.trim().length === 0) set.add(r.id);
+          if (!a.description || a.description.trim().length === 0) set.add(r.id);
         }
       });
     });
@@ -2020,11 +2020,11 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
         const a = answers[r.id];
         if (!a) return false;
         // must be answered in some way
-        const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.notes && a.notes.trim().length > 0);
+        const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.description && a.description.trim().length > 0);
         if (!answered) return false;
         // if this row requires description (score 2/3 and not unk/na), it must not be missing
         const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
-        if (requiresDescription && (!a.notes || a.notes.trim().length === 0)) return false;
+        if (requiresDescription && (!a.description || a.description.trim().length === 0)) return false;
         return true;
       });
       if (allAnsweredAndDescribed) set.add(s.id);
@@ -2051,7 +2051,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
         assessment: Object.entries(answers).map(([questionId, details]) => ({
           question_id: questionId,
           score: details.score ?? null,
-          notes: details.notes || "",
+          description: details.notes || "",
           unknown: details.unk || false,
           not_applicable: details.na || false,
         })),
@@ -2445,7 +2445,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                   const active = currentGlobalIndex === globalIndex;
                   const saved =
                     !!answers[r.id] &&
-                    (answers[r.id].unk || answers[r.id].na || (answers[r.id].score !== null && answers[r.id].score !== undefined) || (answers[r.id].notes && answers[r.id].notes.trim()));
+                    (answers[r.id].unk || answers[r.id].na || (answers[r.id].score !== null && answers[r.id].score !== undefined) || (answers[r.id].description && answers[r.id].description.trim()));
                   return (
                     <React.Fragment key={r.id}>
                       <div style={styles.bubble(active, saved)} onClick={() => setCurrentGlobalIndex(globalIndex)} role="button" title={r.title}>
@@ -2466,7 +2466,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                   <>
                     {(currentRow.help || []).map((text, idx) => {
                       const special = /^\s*(unknown|unkown|not applicable|n\/a)/i.test(text);
-                      const a = answers[currentRow.id] || { score: null, notes: "", unk: false, na: false };
+                      const a = answers[currentRow.id] || { score: null, description: "", unk: false, na: false };
                       if (special) {
                         const isUnknown = /^unk/i.test(text);
                         const checked = isUnknown ? a.unk === true : a.na === true;
@@ -2507,8 +2507,8 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                             border: missingDescriptions.has(currentRow.id) ? "1px solid #f87171" : "1px solid #d1d5db",
                           }}
                           placeholder="Explain the description here"
-                          value={(answers[currentRow.id] || {}).notes || ""}
-                          onChange={(e) => setAnswer(currentRow.id, { notes: e.target.value })}
+                          value={(answers[currentRow.id] || {}).description || ""}
+                          onChange={(e) => setAnswer(currentRow.id, { description: e.target.value })}
                         />
                         {missingDescriptions.has(currentRow.id) && (
                           <div style={{ color: "#b91c1c", marginTop: 6, fontSize: 13 }}>Description is required for this rating.</div>
