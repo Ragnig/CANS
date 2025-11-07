@@ -963,7 +963,7 @@ const demoSections = [
                 "The primary caregiver experienced some minor or transient stressors which made her slightly less available to the child (e.g., another child under two years of age, ill family member, return to work before six weeks of age).",
                 "The primary caregiver experienced a moderate level of stress sufficient to make him/her significantly less emotionally and physically available to the child in the weeks following the birth (e.g., major marital conflict, chronic pain, multiple children under four years of age).",
                 "The primary caretaker was unavailable to the child to such an extent that the child’s emotional or physical well-being was severely compromised (e.g., severe post-partum depression, psychiatric hospitalization, or prolonged separation).",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable.",
                 ],                  
         },
@@ -1624,7 +1624,7 @@ const demoSections = [
 const styles = {
   container: { maxWidth: 1800, margin: "0 auto", padding: 12, boxSizing: "border-box" },
   header: {
-    background: "#fff",
+    // background: "#fff",
     color: "#080808ff",
     padding: "14px 20px",
     borderRadius: 8,
@@ -1813,7 +1813,11 @@ const bubblesPerPage = 15;
 /* -------------------- COMPONENT -------------------- */
 export default function BasicInfoForm({ overview = demoOverview, sections = demoSections }) {
   // default date for date input display (ISO yyyy-mm-dd)
-  const todayIso = new Date().toISOString().split("CST")[0];
+  // const todayIso = new Date().toISOString().split("CST")[0];
+  // const todayIso = new Date().toLocaleDateString("en-US");
+  const d = new Date();
+const pad = (n) => String(n).padStart(2, "0");
+const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const [formData, setFormData] = useState({
     ...overview,
     dateOfAssessment: overview.dateOfAssessment || todayIso,
@@ -2334,7 +2338,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
             <div style={{ marginTop: 10, display: "flex", alignItems: "center" }}>
               <span style={styles.overviewLabel}>Member date of birth</span>
               {/* fixed: use memberDob (camelCase) */}
-              <span style={styles.overviewValue}>{formData.memberDob || "12-25-2002"}</span>
+              <span style={styles.overviewValue}>{formData.memberDob || "2002-12-25"}</span>
 
               {/* optionally keep an editable date input */}
               {/* <input
