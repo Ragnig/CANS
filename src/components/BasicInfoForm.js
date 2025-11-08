@@ -1619,23 +1619,21 @@ const demoSections = [
       ],
     },
   ];
-
 /* -------------------- STYLES -------------------- */
 const styles = {
-  container: { maxWidth: 1800, margin: "0 auto", padding: 12, boxSizing: "border-box" },
+  container: { maxWidth: 1800, margin: "0 auto", padding: 12, fontFamily: "Segoe UI", boxSizing: "border-box" },
   header: {
-    // background: "#fff",
-    color: "#080808ff",
+    color: "#616161",
     padding: "14px 20px",
     borderRadius: 8,
-    fontWeight: 700,
-    fontSize: 20,
+    fontWeight: 350,
+    fontSize: 32,
     marginBottom: 12,
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
-  overviewCard: { background: "#fff", borderRadius: 8, padding: 18, marginBottom: 12, boxSizing: "border-box" },
+  overviewCard: { background: "#FFF", borderRadius: 8, padding: 18, marginBottom: 12, boxSizing: "border-box" },
 
   overviewGrid: {
     display: "grid",
@@ -1684,33 +1682,73 @@ const styles = {
     width: "60%",
   },
 
+  panel: {
+    background: "#ffffff",
+    borderRadius: 8,
+    boxShadow: "0 1px 6px rgba(16,24,40,0.06)",
+    padding: 12,
+    boxSizing: "border-box",
+    display: "grid",
+    gridTemplateColumns: "260px 1fr",
+    gap: 22,
+    alignItems: "start",
+  },
+
   input: { width: "100%", padding: "10px 12px", borderRadius: 6, border: "1px solid #d1d5db", boxSizing: "border-box" },
 
-  bodyGrid: { display: "grid", gridTemplateColumns: "300px 1fr", gap: 22 },
-  leftNav: { background: "#fff", padding: 14, borderRadius: 8, boxShadow: "0 1px 3px #242424)", maxHeight: "75vh", overflow: "auto" },
+  // left nav (unchanged)
+  leftNav: {
+    background: "transparent",
+    padding: "8px 0",
+    borderRadius: 0,
+    boxShadow: "none",
+    maxHeight: "80vh",
+    overflow: "auto",
+    borderRight: "1px solid #e5e7eb",
+    boxSizing: "border-box",
+  },
 
-  // left button: active boolean
+  sectionListTitle: {
+    fontSize: 13,
+    color: "#374151",
+    padding: "6px 12px",
+    marginBottom: 6,
+    fontWeight: 600,
+  },
+
   leftBtn: (active) => ({
     display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
     width: "100%",
     textAlign: "left",
     fontFamily: "Segoe UI",
-    padding: "12px 14px",
-    borderRadius: 6,
-    border: "1px solid",
-    borderColor: active ? "#c7d2fe" : "#e5e7eb",
-    background: active ? "#eef2ff" : "#fff",
-    color: active ? "#636F9E" : "#111827",
-    marginBottom: 10,
+    justifyContent: "space-between",
+    padding: "8px 12px",
+    borderRadius: 0,
+    border: "none",
+    background: active ? "#f5f5f5" : "transparent",
+    color: active ? "#111827" : "#374151",
+    fontWeight: active ? 700 : 400,
+    marginBottom: 8,
     cursor: "pointer",
     boxSizing: "border-box",
+    borderRight: active ? "4px solid #636F9E" : "4px solid transparent",
+    paddingRight: 12,
   }),
+
+  leftBtnText: {
+    display: "block",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+    lineHeight: 1.25,
+    fontSize: 14,
+  },
+
   pageHeight: 1040,
+
+  // RIGHT PANEL: padding left/right set to 24px so content sits 24px from container edges
   rightCard: (pageHeight) => ({
     background: "#fff",
-    padding: 20,
+    padding: "20px 24px", // top/bottom 20px, left/right 24px per request
     borderRadius: 8,
     paddingBottom: 28,
     boxSizing: "border-box",
@@ -1719,9 +1757,10 @@ const styles = {
     flexDirection: "column",
     overflow: "visible",
   }),
-  bubbleRail: {
+
+  badgeRail: {
     display: "flex",
-    gap: 8,
+    gap: 0,
     padding: "6px 4px",
     marginBottom: 8,
     alignItems: "center",
@@ -1729,57 +1768,128 @@ const styles = {
     whiteSpace: "nowrap",
     overflowX: "visible",
   },
-  bubble: (active, saved) => {
+
+  badge: (active, saved) => {
     const base = {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 32,
+      height: 32,
+      minWidth: 32,
+      borderRadius: 16,
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      border: "1px solid #c7d2fe",
+      border: "1px solid #e5e7eb",
       cursor: "pointer",
       fontWeight: 700,
       flex: "0 0 auto",
       fontSize: 12,
       boxSizing: "border-box",
+      margin: 0,
     };
-    if (active) return { ...base, background: "#636f9e", color: "#fff" };
-    if (saved) return { ...base, background: "#dcfce7", color: "#166534" };
-    return { ...base, background: "#fff", color: "#374151" };
+    if (active) return { ...base, background: "#636f9e", color: "#fff", borderColor: "#636f9e" };
+    if (saved) return { ...base, background: "#dcfce7", color: "#166534", borderColor: "#dcfce7" };
+    return { ...base, background: "#fff", color: "#374151", borderColor: "#e5e7eb" };
   },
+
   connector: {
-    flex: "0 0 16px",
+    flex: "0 0 24px",
+    width: 24,
     height: 2,
-    background: "#e9ecef",
+    background: "#e5e7eb",
     alignSelf: "center",
-    borderRadius: 1,
-    margin: "0 4px",
+    borderRadius: 2,
+    margin: 0,
+    boxSizing: "border-box",
   },
+
+  // QUESTION CARD wrapper (use this to create the bordered container for question and options)
+  questionCard: {
+    borderRadius: 4,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    border: "1px solid #D1D1D1",
+    background: "#fff",
+    overflow: "hidden",
+    marginBottom: 12,
+    boxSizing: "border-box",
+  },
+
+  // Header bar of the question container; left/right padding matches rightCard (24px)
   qHeader: {
     background: "#636F9E",
     color: "#fff",
-    padding: "12px 14px",
-    borderRadius: 6,
-    fontWeight: 700,
-    marginBottom: 12,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
+    padding: "12px 24px",
+    fontWeight: 600,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    fontFamily: "Segoe UI",
+    fontSize: 14,
+    display: "flex",
+    alignItems: "center",
   },
+
+  // qInner padding is set to 24px so option boxes sit 24px away from container edges
+  qInner: {
+    padding: "24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    boxSizing: "border-box",
+    background: "#fff",
+  },
+
+  // Option row is a box (as in figma)
   optionRow: (checked) => ({
     display: "flex",
-    gap: 10,
-    alignItems: "flex-start",
+    gap: 12,
+    alignItems: "center",
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 6,
     border: "1px solid",
     borderColor: checked ? "#c7d2fe" : "#e5e7eb",
     background: checked ? "#eef2ff" : "#fff",
     cursor: "pointer",
-    marginBottom: 10,
+    marginBottom: 0,
+    width: "100%",
+    boxSizing: "border-box",
+    minHeight: 52,
   }),
-  describeArea: { width: "100%", minHeight: 130, maxHeight: 320, padding: 12, borderRadius: 8, border: "1px solid #d1d5db", boxSizing: "border-box", resize: "vertical" },
+
+  // Plain numeric label (no box) like "0." "1."
+  optionNumber: (hasNumber, checked) => ({
+    width: 28,
+    minWidth: 28,
+    textAlign: "right",
+    color: checked ? "#111827" : "#374151",
+    fontWeight: 700,
+    fontSize: 14,
+    lineHeight: "20px",
+    alignSelf: "center",
+    marginRight: 8,
+  }),
+
+  visibleRadio: {
+    width: 18,
+    height: 18,
+    marginTop: 0,
+    marginRight: 8,
+    cursor: "pointer",
+    accentColor: "#636F9E",
+    alignSelf: "center",
+  },
+
+  optionBody: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    color: "#111827",
+    fontSize: 13,
+  },
+
+  describeArea: { width: "100%", minHeight: 130, maxHeight: 320, padding: 12, borderRadius: 6, border: "1px solid #d1d5db", boxSizing: "border-box", resize: "vertical", fontFamily: "Segoe UI" },
+
+  // footer area removed from outer panel - we'll render Save/Submit inside the questionCard
   pageFooter: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: -14, flexShrink: 0 },
   pageSaveRow: { display: "flex", justifyContent: "center", gap: 12, alignItems: "center", flex: "0 0 auto" },
   bottomNav: { display: "flex", justifyContent: "flex-end", gap: 8, alignItems: "center", width: "100%" },
@@ -1787,7 +1897,6 @@ const styles = {
   btnPrimary: { padding: "10px 14px", borderRadius: 8, border: "1px solid #4f46e5", background: "#4f46e5", color: "#fff", cursor: "pointer" },
   disabledBtn: { opacity: 0.5, cursor: "not-allowed" },
 
-  // section complete badge (green circle with tick)
   sectionBadge: (completed) => ({
     display: "inline-flex",
     alignItems: "center",
@@ -1807,17 +1916,14 @@ const styles = {
 
 const requiredOverviewFields = ["caseId", "caseName", "personId", "memberName", "workerName", "memberRole"];
 
-// Show 15 bubbles per page
-const bubblesPerPage = 15;
+// Show 15 badges per page
+const badgesPerPage = 15;
 
 /* -------------------- COMPONENT -------------------- */
 export default function BasicInfoForm({ overview = demoOverview, sections = demoSections }) {
-  // default date for date input display (ISO yyyy-mm-dd)
-  // const todayIso = new Date().toISOString().split("CST")[0];
-  // const todayIso = new Date().toLocaleDateString("en-US");
   const d = new Date();
-const pad = (n) => String(n).padStart(2, "0");
-const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const pad = (n) => String(n).padStart(2, "0");
+  const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const [formData, setFormData] = useState({
     ...overview,
     dateOfAssessment: overview.dateOfAssessment || todayIso,
@@ -1863,9 +1969,9 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 
   const [activeSectionId, setActiveSectionId] = useState(visibleSections[0]?.id ?? null);
   const [currentGlobalIndex, setCurrentGlobalIndex] = useState(flatRows.length ? 0 : null);
-  const [answers, setAnswers] = useState({}); // { rowId: { score, notes, unk, na } }
+  const [answers, setAnswers] = useState({}); // { rowId: { score, description, unk, na } }
 
-  const [bubblePageIndex, setBubblePageIndex] = useState(0);
+  const [badgePageIndex, setBubblePageIndex] = useState(0);
 
   useEffect(() => {
     if (!visibleSections || visibleSections.length === 0) {
@@ -1893,7 +1999,7 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
     if (!activeSectionId) return;
     const sectionStart = sectionRanges.get(activeSectionId)?.start ?? 0;
     const indexInSection = Math.max(0, (currentGlobalIndex ?? 0) - sectionStart);
-    const page = Math.floor(indexInSection / bubblesPerPage);
+    const page = Math.floor(indexInSection / badgesPerPage);
     setBubblePageIndex(page);
   }, [currentGlobalIndex, activeSectionId, sectionRanges]);
 
@@ -1937,11 +2043,10 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
     setIsDirty(true);
   };
 
-  // added console.debug so you can see answers in console; ensures anyAnswered toggles correctly
+  // setAnswer writes description under "description" to match rendering logic
   const setAnswer = (rowId, patch) => {
     setAnswers((prev) => {
       const next = { ...prev, [rowId]: { ...(prev[rowId] || { score: null, description: "", unk: false, na: false }), ...patch } };
-      console.debug("answers updated", rowId, patch, next[rowId]);
       return next;
     });
     setIsDirty(true);
@@ -1996,14 +2101,12 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
   }, [visibleSections]);
 
   // Determine which rows require a description (score 2 or 3) but have empty notes.
-  // We'll use this to block form submission and show per-textarea error.
   const missingDescriptions = useMemo(() => {
     const set = new Set();
     visibleSections.forEach((s) => {
       (s.rows || []).forEach((r) => {
         const a = answers[r.id];
         if (!a) return;
-        // only require description when score is 2 or 3 and not unk/na
         const score = a.score;
         if (!a.unk && !a.na && (score === 2 || score === 3)) {
           if (!a.description || a.description.trim().length === 0) set.add(r.id);
@@ -2014,19 +2117,14 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
   }, [visibleSections, answers]);
 
   // compute which sections are fully answered -> used to show green tick badge
-  // Updated: a section is "completed" only when:
-  // - every row in the section is answered (score / unk / na / notes)
-  // - AND none of the rows in the section are missing a required description (i.e., not present in missingDescriptions)
   const completedSections = useMemo(() => {
     const set = new Set();
     visibleSections.forEach((s) => {
       const allAnsweredAndDescribed = (s.rows || []).every((r) => {
         const a = answers[r.id];
         if (!a) return false;
-        // must be answered in some way
         const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.description && a.description.trim().length > 0);
         if (!answered) return false;
-        // if this row requires description (score 2/3 and not unk/na), it must not be missing
         const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
         if (requiresDescription && (!a.description || a.description.trim().length === 0)) return false;
         return true;
@@ -2055,7 +2153,7 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
         assessment: Object.entries(answers).map(([questionId, details]) => ({
           question_id: questionId,
           score: details.score ?? null,
-          description: details.notes || "",
+          description: details.description || "",
           unknown: details.unk || false,
           not_applicable: details.na || false,
         })),
@@ -2064,9 +2162,8 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
     };
   }
 
-  // Generic save to backend/localStorage
+  // Generic save to backend/localStorage (unchanged)
   async function saveDraftPayload(payload) {
-    // If API_BASE exists, try to POST; otherwise write to localStorage (safe fallback)
     try {
       if (typeof API_BASE !== "undefined") {
         const res = await fetch(`${API_BASE}/api/basic-info`, {
@@ -2090,7 +2187,7 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
     }
   }
 
-  // Debounced autosave
+  // Debounced autosave (unchanged)
   const autosaveTimerRef = useRef(null);
   const mountedRef = useRef(true);
   useEffect(() => {
@@ -2101,10 +2198,9 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
   }, []);
 
   async function autosaveDraftIfNeeded() {
-    // only autosave when there are answers and there are unsaved changes
     if (!anyAnswered) return;
     if (!isDirtyRef.current) return;
-    if (autosaveInFlightRef.current) return; // prevent overlapping autosaves
+    if (autosaveInFlightRef.current) return;
 
     autosaveInFlightRef.current = true;
     if (mountedRef.current) setIsAutosaving(true);
@@ -2123,22 +2219,19 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 
       const res = await saveDraftPayload(payload);
 
-      // update serverDocId if backend returned one
       if (res.ok && res.data?.id) {
         setServerDocId(res.data.id);
       }
 
-      // mark saved only on success (ok true) — if local fallback it returns ok:true
       if (res.ok && mountedRef.current) {
         setIsDirty(false);
         setLastSavedAt(new Date().toISOString());
       }
     } catch (err) {
       console.error("autosave error:", err);
-      // we do not throw — autosave should be non-blocking
     } finally {
       const elapsed = Date.now() - startedAt;
-      const minDisplay = 2000; // always show "Autosaving..." at least 2s
+      const minDisplay = 2000;
       const wait = Math.max(0, minDisplay - elapsed);
 
       if (wait > 0) {
@@ -2151,27 +2244,22 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
   }
 
   useEffect(() => {
-    // clear any pending debounce timer
     if (autosaveTimerRef && autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
       autosaveTimerRef.current = null;
     }
 
-    // clear any existing interval before starting a new one
     if (autosaveIntervalRef.current) {
       clearInterval(autosaveIntervalRef.current);
       autosaveIntervalRef.current = null;
     }
 
-    // Only start the interval if there is at least one answered question
     if (!anyAnswered) return;
 
-    // Run first autosave immediately only if dirty (optional). Comment out if you don't want immediate run:
     if (isDirtyRef.current) {
       autosaveDraftIfNeeded().catch((err) => console.error("autosaveDraftIfNeeded error:", err));
     }
 
-    // Start interval (30,000 ms = 30 seconds)
     autosaveIntervalRef.current = setInterval(() => {
       try {
         if (isDirtyRef.current && answersRef.current && Object.keys(answersRef.current).length > 0) {
@@ -2182,23 +2270,15 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
       }
     }, 30000);
 
-    // Cleanup when anyAnswered changes or component unmounts
     return () => {
       if (autosaveIntervalRef.current) {
         clearInterval(autosaveIntervalRef.current);
         autosaveIntervalRef.current = null;
       }
     };
-    // depend on anyAnswered to start/stop the interval when user begins/clears answers
   }, [anyAnswered]);
 
-  // handleSaveDraft enforces requiredOverviewFields like your original implementation
   async function handleSaveDraft() {
-    const missingOverview = requiredOverviewFields.filter((k) => !formData[k] || String(formData[k]).trim() === "");
-    // if (missingOverview.length > 0) {
-    //   alert("Please fill the Basic information fields before saving as draft");
-    //   return;
-    // }
     if (!anyAnswered) {
       alert("Please answer at least one question before saving as draft.");
       return;
@@ -2206,7 +2286,7 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 
     setIsSaving(true);
     try {
-      const formattedSchema = formatSchemaJSON(formData, answers);
+      const formattedSchema = formatSchemaJSON(formData, answers, visibleSections);
       const payload = {
         status: "draft",
         schema_json: formattedSchema,
@@ -2240,9 +2320,7 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
       return;
     }
 
-    // Block submission if any required description is missing
     if (missingDescriptions.size > 0) {
-      // Build friendly message with titles
       const titles = [...missingDescriptions].map((id) => rowTitlesById.get(id) || `Question ${id}`);
       alert("Please fill the required Describe field(s) for: " + titles.join(", "));
       return;
@@ -2279,11 +2357,11 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 
   const activeSection = visibleSections.find((s) => s.id === activeSectionId) || visibleSections[0] || { rows: [] };
   const sectionRowCount = activeSection.rows.length;
-  const bubblePageStartIndexInSection = bubblePageIndex * bubblesPerPage;
-  const bubbleRowsForPage = activeSection.rows.slice(bubblePageStartIndexInSection, bubblePageStartIndexInSection + bubblesPerPage);
+  const badgePageStartIndexInSection = badgePageIndex * badgesPerPage;
+  const badgeRowsForPage = activeSection.rows.slice(badgePageStartIndexInSection, badgePageStartIndexInSection + badgesPerPage);
   const sectionStartGlobal = sectionRanges.get(activeSectionId)?.start ?? 0;
 
-  // Describe visibility
+  // ShouldShowDescribe unchanged
   const shouldShowDescribe = (() => {
     if (!currentRow) return false;
     const a = answers[currentRow.id];
@@ -2337,18 +2415,7 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 
             <div style={{ marginTop: 10, display: "flex", alignItems: "center" }}>
               <span style={styles.overviewLabel}>Member date of birth</span>
-              {/* fixed: use memberDob (camelCase) */}
               <span style={styles.overviewValue}>{formData.memberDob || "2002-12-25"}</span>
-
-              {/* optionally keep an editable date input */}
-              {/* <input
-                type="date"
-                value={formData.memberDob || ""}
-                onChange={onMemberDobChange}
-                style={styles.overviewDateInput}
-                aria-label="Member date of birth"
-                placeholder="YYYY-MM-DD"
-              /> */}
             </div>
           </div>
 
@@ -2376,9 +2443,11 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
         </div>
       </div>
 
-      <div style={styles.bodyGrid}>
+      {/* panel wraps left + right into a single white container */}
+      <div style={styles.panel}>
         <aside style={styles.leftNav}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>Sections</div>
+          <div style={styles.sectionListTitle}>Sections</div>
+
           {visibleSections.map((s) => {
             const active = s.id === activeSectionId;
             const completed = completedSections.has(s.id);
@@ -2388,18 +2457,17 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
                 type="button"
                 style={styles.leftBtn(active)}
                 onClick={() => onSelectSection(s.id)}
-                title={completed ? "Section complete" : s.title}
+                title={s.title}
               >
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginRight: 8 }}>{s.title}</span>
-                {/* show green tick badge when completed */}
-                <span style={styles.sectionBadge(completed)} aria-hidden>
-                  {completed ? "✓" : ""}
-                </span>
+                <span style={styles.leftBtnText}>{s.title}</span>
+                {/* {completed ? <span style={{ float: "right", color: "#16a34a", fontWeight: 700 }}>✓</span> : null} */}
+                <span style={styles.sectionBadge(completed)}>{completed ? "✓" : ""}</span>
               </button>
             );
           })}
         </aside>
 
+        {/* RIGHT PANEL */}
         <section style={styles.rightCard(styles.pageHeight)}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 18, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -2443,116 +2511,152 @@ const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: "1 1 auto", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-              <div style={styles.bubbleRail}>
-                {bubbleRowsForPage.map((r, idx) => {
-                  const globalIndex = sectionStartGlobal + bubblePageStartIndexInSection + idx;
+              <div style={styles.badgeRail}>
+                {badgeRowsForPage.map((r, idx) => {
+                  const globalIndex = sectionStartGlobal + badgePageStartIndexInSection + idx;
                   const active = currentGlobalIndex === globalIndex;
-                  const saved =
-                    !!answers[r.id] &&
-                    (answers[r.id].unk || answers[r.id].na || (answers[r.id].score !== null && answers[r.id].score !== undefined) || (answers[r.id].description && answers[r.id].description.trim()));
+                  const a = answers[r.id];
+                  const saved = !!a && (a.unk || a.na || a.score != null || (a.description && String(a.description).trim().length > 0));
                   return (
                     <React.Fragment key={r.id}>
-                      <div style={styles.bubble(active, saved)} onClick={() => setCurrentGlobalIndex(globalIndex)} role="button" title={r.title}>
+                      <div
+                        style={styles.badge(active, saved)}
+                        onClick={() => {
+                          setCurrentGlobalIndex(globalIndex);
+                        }}
+                        role="button"
+                        title={r.title}
+                      >
                         {r.id}
                       </div>
-                      {idx < bubbleRowsForPage.length - 1 && <div aria-hidden style={styles.connector} />}
+                      {idx < badgeRowsForPage.length - 1 && <div aria-hidden style={styles.connector} />}
                     </React.Fragment>
                   );
                 })}
               </div>
             </div>
 
-            <div style={{ paddingRight: 8 }}>
-              <div style={styles.qHeader}>{currentRow ? `${currentRow.id}. ${currentRow.title}` : "No questions"}</div>
+            {/* QUESTION CARD: title + options inside a bordered container */}
+            <div>
+              <div style={styles.questionCard}>
+                <div style={styles.qHeader}>{currentRow ? `${currentRow.id}. ${currentRow.title}` : "No questions"}</div>
 
-              <div style={{ overflow: "hidden" }}>
-                {currentRow ? (
-                  <>
-                    {(currentRow.help || []).map((text, idx) => {
-                      const special = /^\s*(unknown|unkown|not applicable|n\/a)/i.test(text);
-                      const a = answers[currentRow.id] || { score: null, description: "", unk: false, na: false };
-                      if (special) {
-                        const isUnknown = /^unk/i.test(text);
-                        const checked = isUnknown ? a.unk === true : a.na === true;
+                <div style={styles.qInner}>
+                  {currentRow ? (
+                    <>
+                      {(currentRow.help || []).map((text, idx) => {
+                        const raw = String(text || "");
+                        const special = /^\s*(unknown|unkown|not applicable|n\/a)/i.test(raw);
+                        const a = answers[currentRow.id] || { score: null, description: "", unk: false, na: false };
+
+                        if (special) {
+                          const isUnknown = /^unk/i.test(raw);
+                          const checked = isUnknown ? a.unk === true : a.na === true;
+                          return (
+                            <label key={idx} style={styles.optionRow(checked)}>
+                              {/* radio before option */}
+                              <input
+                                type="radio"
+                                name={`q-${currentRow.id}`}
+                                checked={checked}
+                                onChange={() => setAnswer(currentRow.id, { score: null, unk: isUnknown, na: !isUnknown })}
+                                style={styles.visibleRadio}
+                                aria-label={raw}
+                              />
+                              {/* empty numeric space for alignment */}
+                              <div style={styles.optionNumber(false, checked)} />
+                              <div style={styles.optionBody}>
+                                <div style={{ color: "#374151" }}>{raw}</div>
+                              </div>
+                            </label>
+                          );
+                        }
+
+                        const checked = (answers[currentRow.id] || {}).score === idx;
                         return (
                           <label key={idx} style={styles.optionRow(checked)}>
-                            <input type="radio" checked={checked} onChange={() => setAnswer(currentRow.id, { score: null, unk: isUnknown, na: !isUnknown })} />
-                            <div style={{ flex: 1, marginLeft: 8 }}>{text}</div>
+                            <input
+                              type="radio"
+                              name={`q-${currentRow.id}`}
+                              checked={checked}
+                              onChange={() => {
+                                setAnswer(currentRow.id, { score: idx, unk: false, na: false });
+                              }}
+                              style={styles.visibleRadio}
+                              aria-label={`Option ${idx}: ${raw}`}
+                            />
+
+                            {/* plain number label (no box) */}
+                            <div style={styles.optionNumber(true, checked)}>{idx}.</div>
+
+                            <div style={styles.optionBody}>
+                              <div style={{ color: "#111827" }}>{raw}</div>
+                            </div>
                           </label>
                         );
-                      }
-                      const checked = (answers[currentRow.id] || {}).score === idx;
-                      return (
-                        <label key={idx} style={styles.optionRow(checked)}>
-                          <input
-                            type="radio"
-                            checked={checked}
-                            onChange={() => {
-                              setAnswer(currentRow.id, { score: idx, unk: false, na: false });
+                      })}
+
+                      {shouldShowDescribe && (
+                        <div>
+                          <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
+                            Describe <span style={{ color: "#eb0606ff", fontWeight: 700 }}>*</span>
+                          </label>
+                          <textarea
+                            style={{
+                              ...styles.describeArea,
+                              border: missingDescriptions.has(currentRow.id) ? "1px solid #131212ff" : "1px solid #d1d5db",
                             }}
+                            placeholder="Explain the description here"
+                            value={(answers[currentRow.id] || {}).description || ""}
+                            onChange={(e) => setAnswer(currentRow.id, { description: e.target.value })}
                           />
-                          <div style={{ flex: 1, marginLeft: 8 }}>
-                            <strong style={{ marginRight: 8 }}>{idx}</strong>
-                            {text}
-                          </div>
-                        </label>
-                      );
-                    })}
+                        </div>
+                      )}
 
-                    {shouldShowDescribe && (
-                      <div>
-                        <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
-                          Describe <span style={{ color: "#b91c1c", fontWeight: 700 }}>{/* required marker */}*</span>
-                        </label>
-                        {/* highlight the textarea border when description is missing */}
-                        <textarea
-                          style={{
-                            ...styles.describeArea,
-                            border: missingDescriptions.has(currentRow.id) ? "1px solid #f87171" : "1px solid #d1d5db",
-                          }}
-                          placeholder="Explain the description here"
-                          value={(answers[currentRow.id] || {}).description || ""}
-                          onChange={(e) => setAnswer(currentRow.id, { description: e.target.value })}
-                        />
-                        {missingDescriptions.has(currentRow.id) && (
-                          <div style={{ color: "#b91c1c", marginTop: 6, fontSize: 13 }}>Description is required for this rating.</div>
-                        )}
+                      {/* Buttons INSIDE the question container */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+                        {/* Left side: Save as Draft and Submit inside the container */}
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            type="button"
+                            style={{ ...styles.btn, ...(anyAnswered ? {} : styles.disabledBtn) }}
+                            onClick={handleSaveDraft}
+                            disabled={!anyAnswered || isSaving}
+                          >
+                            {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft"}
+                          </button>
+
+                          <button
+                            type="button"
+                            style={{ ...styles.btnPrimary, ...(isCompleteAllowed ? {} : styles.disabledBtn) }}
+                            onClick={handleComplete}
+                            disabled={!isCompleteAllowed || isSaving || missingDescriptions.size > 0}
+                            title={missingDescriptions.size > 0 ? "Please fill required Describe fields before submitting" : ""}
+                          >
+                            {isSaving ? "Submitting..." : "Submit"}
+                          </button>
+                        </div>
+
+                        {/* Right side: Back / Next navigation */}
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button type="button" style={{ ...styles.btn, ...(isFirst ? styles.disabledBtn : {}) }} onClick={goPrev} disabled={isFirst}>
+                            Back
+                          </button>
+                          <button type="button" style={{ ...styles.btnPrimary, ...(isLast ? styles.disabledBtn : {}) }} onClick={goNext} disabled={isLast}>
+                            Next
+                          </button>
+                        </div>
                       </div>
-                    )}
-
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-                      <button type="button" style={{ ...styles.btn, ...(isFirst ? styles.disabledBtn : {}) }} onClick={goPrev} disabled={isFirst}>
-                        Back
-                      </button>
-                      <button type="button" style={{ ...styles.btnPrimary, ...(isLast ? styles.disabledBtn : {}), marginLeft: 8 }} onClick={goNext} disabled={isLast}>
-                        Next
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div style={{ color: "#6b7280" }}>No questions in this section.</div>
-                )}
+                    </>
+                  ) : (
+                    <div style={{ color: "#6b7280" }}>No questions in this section.</div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          <div style={styles.pageFooter}>
-            <div style={styles.pageSaveRow}>
-              <button type="button" style={{ ...styles.btn, ...(anyAnswered ? {} : styles.disabledBtn) }} onClick={handleSaveDraft} disabled={!anyAnswered || isSaving}>
-                {isSaving ? "Saving..." : isAutosaving ? "Autosaving...": "Save as Draft"}
-              </button>
-
-              <button
-                type="button"
-                style={{ ...styles.btnPrimary, ...(isCompleteAllowed ? {} : styles.disabledBtn) }}
-                onClick={handleComplete}
-                disabled={!isCompleteAllowed || isSaving || missingDescriptions.size > 0}
-                title={missingDescriptions.size > 0 ? "Please fill required Describe fields before submitting" : ""}
-              >
-                {isSaving ? "Submitting..." : "Submit"}
-              </button>
-            </div>
-          </div>
+          {/* outer page footer removed to avoid duplicate buttons; kept for spacing if needed */}
         </section>
       </div>
     </div>
