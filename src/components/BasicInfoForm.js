@@ -1833,7 +1833,7 @@ const styles = {
     padding: "24px",
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 6,
     boxSizing: "border-box",
     background: "#fff",
   },
@@ -2605,7 +2605,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                       })}
 
                       {shouldShowDescribe && (
-                        <div>
+                        <div style={{ marginTop: 24}}>
                           <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
                             Describe <span style={{ color: "#eb0606ff", fontWeight: 700 }}>*</span>
                           </label>
