@@ -1658,7 +1658,7 @@ const styles = {
     marginLeft: 8,
   },
   overviewLink: {
-    color: "#0f0f0fff",
+    color: "#465485",
     textDecoration: "none",
     cursor: "pointer",
     fontWeight: 600,
@@ -1894,7 +1894,7 @@ const styles = {
   pageSaveRow: { display: "flex", justifyContent: "center", gap: 12, alignItems: "center", flex: "0 0 auto" },
   bottomNav: { display: "flex", justifyContent: "flex-end", gap: 8, alignItems: "center", width: "100%" },
   btn: { padding: "10px 14px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" },
-  btnPrimary: { padding: "10px 14px", borderRadius: 8, border: "1px solid #4f46e5", background: "#4f46e5", color: "#fff", cursor: "pointer" },
+  btnPrimary: { padding: "10px 14px", borderRadius: 8, border: "1px solid #636F9E", background: "#636F9E", color: "#fff", cursor: "pointer" },
   disabledBtn: { opacity: 0.5, cursor: "not-allowed" },
 
   sectionBadge: (completed) => ({
@@ -2396,7 +2396,15 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
             <div>
               <span style={styles.overviewLabel}>Case name</span>
               <span style={styles.overviewValue}>
-                <span style={styles.overviewLink}>{formData.caseName || "Bryant, Dianne"}</span>
+                {/* <span style={styles.overviewLink}>{formData.caseName || "Bryant, Dianne"}</span>  */}
+                 <a
+                  href={`/cases/${formData.caseId || ""}`}
+                  style={styles.overviewLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >
+                  {formData.caseName || "Bryant, Dianne"}
+                </a>
               </span>
             </div>
             <div style={{ marginTop: 10 }}>
@@ -2614,9 +2622,9 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                       )}
 
                       {/* Buttons INSIDE the question container */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+                      <div style={{ display: "flex",justifyContent: "space-between", alignItems: "center", marginTop: 20, width: "100%"}}>
                         {/* Left side: Save as Draft and Submit inside the container */}
-                        <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ display: "flex", gap: 16 }}>
                           <button
                             type="button"
                             style={{ ...styles.btn, ...(anyAnswered ? {} : styles.disabledBtn) }}
@@ -2638,7 +2646,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                         </div>
 
                         {/* Right side: Back / Next navigation */}
-                        <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ display: "flex", gap: 16 }}>
                           <button type="button" style={{ ...styles.btn, ...(isFirst ? styles.disabledBtn : {}) }} onClick={goPrev} disabled={isFirst}>
                             Back
                           </button>
