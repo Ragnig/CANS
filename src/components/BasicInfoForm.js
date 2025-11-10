@@ -18,7 +18,7 @@ const demoSections = [
 
   {
       id: 1,
-      title: "Traumatic Experience",
+      title: "Trauma Experience",
       rows: [
         { id: 1, 
           title: "Sexual Abuse",
@@ -518,7 +518,7 @@ const demoSections = [
     },  
     {
       id: 5,
-      title: "Acculation",
+      title: "Acculturation",
       rows: [
         { id: 44, 
           title: "Language",
