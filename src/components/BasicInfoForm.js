@@ -908,7 +908,7 @@ const demoSections = [
                 "Child was born underweight but is now within normal range or child is slightly beneath normal range. A child with a birth weight of between 1500 grams (3.3 pounds) and 2499 grams would be rated here.",
                 "Child is considerably underweight to the point of presenting a developmental risk. A child with a birth weight of less than 1000 grams (2.2 pounds) would be rated here.",
                 "Child is extremely underweight to the point where the child's life is threatened. A child with a birth weight of less than 1000 grams (2.2 pounds) would be rated here.",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable. ",
                 ],                  
         },
@@ -919,7 +919,7 @@ const demoSections = [
                 "Child's biological mother had some shortcomings in prenatal care or mild pregnancy-related illness. (6 or fewer visits, mild or controlled gestational diabetes, uncomplicated high-risk pregnancy.)",
                 "Child's biological mother received poor prenatal care or had a moderate pregnancy-related illness (e.g., 4 or fewer visits, high-risk pregnancy with some complications).",
                 "Child's biological mother had no prenatal care or a severe pregnancy-related illness (e.g., toxemia/preeclampsia).",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable. ",
                 ],                  
         },
@@ -930,7 +930,7 @@ const demoSections = [
                 "Child had mild in utero exposure (e.g., mother ingested alcohol/tobacco in small amounts fewer than four times) or current home exposure.",
                 "Child was exposed to alcohol/drugs in utero (e.g., illegal drugs or frequent alcohol/tobacco use).",
                 "Child was exposed to alcohol/drugs in utero and continues to be exposed at home. (e.g., withdrawal symptoms at birth).",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable.",
                 ],                  
         },
@@ -941,7 +941,7 @@ const demoSections = [
                 "Mild problems during delivery but child not affected (e.g., emergency C-section, minor physical injury).",
                 "Problems during delivery causing temporary functional difficulties (e.g., extended fetal distress, hemorrhage, uterine rupture). Apgar 4–7.",
                 "Severe problems with long-term implications (e.g., brain damage, extensive oxygen deprivation). Apgar ≤ 3.",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable.",
                 ],                  
         },
@@ -952,7 +952,7 @@ const demoSections = [
                 "The child's parents have no developmental disabilities. The child has siblings who are experiencing some mild developmental or behavioral problems (e.g., Attention Deficit, Oppositional Defiant, or Conduct Disorders). It may be that the child has at least one healthy sibling.",
                 "The child's parents have no developmental disabilities. The child has a sibling who is experiencing a significant developmental or behavioral problem (e.g., a severe version of any of the disorders cited above, or any developmental disorder).",
                 "One or both of the child's parents have been diagnosed with a developmental disability, or the child has multiple siblings who are experiencing significant developmental or behavioral problems (all siblings must have some problems).",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable.",
                 ],                  
         },
@@ -2134,6 +2134,28 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
     return set;
   }, [visibleSections, answers, missingDescriptions]);
 
+  // New: allow submit when all visible questions are answered
+  const allQuestionsCompleted = useMemo(() => {
+    return visibleSections.every((s) =>
+      (s.rows || []).every((r) => {
+        const a = answers[r.id];
+        if (!a) return false;
+        const answered =
+          a.unk ||
+          a.na ||
+          (a.score !== null && a.score !== undefined) ||
+          (a.description && String(a.description).trim().length > 0);
+        if (!answered) return false;
+        const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
+        if (requiresDescription && (!a.description || String(a.description).trim().length === 0)) return false;
+        return true;
+      })
+    );
+  }, [visibleSections, answers]);
+
+  // Final submit eligibility: either overview is complete OR all visible questions are completed, and there are no missing descriptions
+  const canSubmit = (isCompleteAllowed || allQuestionsCompleted) && missingDescriptions.size === 0;
+
   // Formatting function -> your JSON schema
   function formatSchemaJSON(overview, answers) {
     return {
@@ -2314,8 +2336,9 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
   }
 
   async function handleComplete() {
+    // Only require overview fields when not all questions are completed.
     const missing = requiredOverviewFields.filter((k) => !formData[k] || String(formData[k]).trim() === "");
-    if (missing.length) {
+    if (!allQuestionsCompleted && missing.length) {
       alert("Please fill the required fields: " + missing.join(", "));
       return;
     }
@@ -2396,13 +2419,12 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
             <div>
               <span style={styles.overviewLabel}>Case name</span>
               <span style={styles.overviewValue}>
-                {/* <span style={styles.overviewLink}>{formData.caseName || "Bryant, Dianne"}</span>  */}
-                 <a
+                <a
                   href={`/cases/${formData.caseId || ""}`}
                   style={styles.overviewLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  >
+                >
                   {formData.caseName || "Bryant, Dianne"}
                 </a>
               </span>
@@ -2468,7 +2490,6 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                 title={s.title}
               >
                 <span style={styles.leftBtnText}>{s.title}</span>
-                {/* {completed ? <span style={{ float: "right", color: "#16a34a", fontWeight: 700 }}>✓</span> : null} */}
                 <span style={styles.sectionBadge(completed)}>{completed ? "✓" : ""}</span>
               </button>
             );
@@ -2605,7 +2626,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                       })}
 
                       {shouldShowDescribe && (
-                        <div style={{ marginTop: 24}}>
+                        <div style={{ marginTop: 24 }}>
                           <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
                             Describe <span style={{ color: "#eb0606ff", fontWeight: 700 }}>*</span>
                           </label>
@@ -2622,7 +2643,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                       )}
 
                       {/* Buttons INSIDE the question container */}
-                      <div style={{ display: "flex",justifyContent: "space-between", alignItems: "center", marginTop: 20, width: "100%"}}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, width: "100%" }}>
                         {/* Left side: Save as Draft and Submit inside the container */}
                         <div style={{ display: "flex", gap: 16 }}>
                           <button
@@ -2636,10 +2657,16 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
 
                           <button
                             type="button"
-                            style={{ ...styles.btnPrimary, ...(isCompleteAllowed ? {} : styles.disabledBtn) }}
+                            style={{ ...styles.btnPrimary, ...(canSubmit ? {} : styles.disabledBtn) }}
                             onClick={handleComplete}
-                            disabled={!isCompleteAllowed || isSaving || missingDescriptions.size > 0}
-                            title={missingDescriptions.size > 0 ? "Please fill required Describe fields before submitting" : ""}
+                            disabled={!canSubmit || isSaving}
+                            title={
+                              !canSubmit
+                                ? missingDescriptions.size > 0
+                                  ? "Please fill required Describe fields before submitting"
+                                  : "Please answer all questions or fill required overview fields"
+                                : ""
+                            }
                           >
                             {isSaving ? "Submitting..." : "Submit"}
                           </button>
