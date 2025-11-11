@@ -2013,6 +2013,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [serverDocId, setServerDocId] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const formDataRef = useRef(formData);
   const answersRef = useRef(answers);
@@ -2116,23 +2117,48 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
     return set;
   }, [visibleSections, answers]);
 
+  // - otherwise a score must exist
+// - if score is 2 or 3, a non-empty description is required
+const isQuestionCompleted = (a = {}) => {
+  if (!a) return false;
+  if (a.unk || a.na) return true;
+  if (a.score === null || a.score === undefined || a.score === "") return false;
+  const scoreNum = Number(a.score);
+  if (scoreNum === 2 || scoreNum === 3) {
+    return !!a.description && String(a.description).trim().length > 0;
+  }
+  return true;
+};
+
   // compute which sections are fully answered -> used to show green tick badge
-  const completedSections = useMemo(() => {
-    const set = new Set();
-    visibleSections.forEach((s) => {
-      const allAnsweredAndDescribed = (s.rows || []).every((r) => {
-        const a = answers[r.id];
-        if (!a) return false;
-        const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.description && a.description.trim().length > 0);
-        if (!answered) return false;
-        const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
-        if (requiresDescription && (!a.description || a.description.trim().length === 0)) return false;
-        return true;
+  // const completedSections = useMemo(() => {
+  //   const set = new Set();
+  //   visibleSections.forEach((s) => {
+  //     const allAnsweredAndDescribed = (s.rows || []).every((r) => {
+  //       const a = answers[r.id];
+  //       if (!a) return false;
+  //       const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.description && a.description.trim().length > 0);
+  //       if (!answered) return false;
+  //       const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
+  //       if (requiresDescription && (!a.description || a.description.trim().length === 0)) return false;
+  //       return true;
+  //     });
+  //     if (allAnsweredAndDescribed) set.add(s.id);
+  //   });
+  //   return set;
+  // }, [visibleSections, answers, missingDescriptions]);
+
+      const completedSections = useMemo(() => {
+      const set = new Set();
+      visibleSections.forEach((s) => {
+        const allAnsweredAndDescribed = (s.rows || []).every((r) => {
+          const a = answers[r.id];
+          return isQuestionCompleted(a);
+        });
+        if (allAnsweredAndDescribed) set.add(s.id);
       });
-      if (allAnsweredAndDescribed) set.add(s.id);
-    });
-    return set;
-  }, [visibleSections, answers, missingDescriptions]);
+      return set;
+    }, [visibleSections, answers]);
 
   // New: allow submit when all visible questions are answered
   const allQuestionsCompleted = useMemo(() => {
@@ -2369,6 +2395,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
       if (res.data?.id) setServerDocId(res.data.id);
       setIsDirty(false);
       setLastSavedAt(new Date().toISOString());
+      setIsSubmitted(true); // mark form as submitted so UI becomes read-only
       alert("✅ Form submitted successfully!");
     } catch (err) {
       console.error("Submit error:", err);
@@ -2463,6 +2490,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                 onChange={(e) => updateFormField("memberRole", e.target.value)}
                 style={{ ...styles.memberRoleInput, padding: "6px 8px" }}
                 aria-label="Member role"
+                disabled={isSubmitted}
               >
                 <option value="">-- Select role --</option>
                 <option value="Child">Child</option>
@@ -2545,14 +2573,14 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                   const globalIndex = sectionStartGlobal + badgePageStartIndexInSection + idx;
                   const active = currentGlobalIndex === globalIndex;
                   const a = answers[r.id];
-                  const saved = !!a && (a.unk || a.na || a.score != null || (a.description && String(a.description).trim().length > 0));
+                  // const saved = !!a && (a.unk || a.na || a.score != null || (a.description && String(a.description).trim().length > 0));
+                  const saved = isQuestionCompleted(a);
                   return (
                     <React.Fragment key={r.id}>
                       <div
                         style={styles.badge(active, saved)}
-                        onClick={() => {
-                          setCurrentGlobalIndex(globalIndex);
-                        }}
+                        // onClick={() => {setCurrentGlobalIndex(globalIndex); }}
+                        onClick={() => { if (!isSubmitted) setCurrentGlobalIndex(globalIndex); }}
                         role="button"
                         title={r.title}
                       >
@@ -2591,6 +2619,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                                 onChange={() => setAnswer(currentRow.id, { score: null, unk: isUnknown, na: !isUnknown })}
                                 style={styles.visibleRadio}
                                 aria-label={raw}
+                                disabled={isSubmitted}
                               />
                               {/* empty numeric space for alignment */}
                               <div style={styles.optionNumber(false, checked)} />
@@ -2613,6 +2642,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                               }}
                               style={styles.visibleRadio}
                               aria-label={`Option ${idx}: ${raw}`}
+                              disabled={isSubmitted}
                             />
 
                             {/* plain number label (no box) */}
@@ -2638,6 +2668,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                             placeholder="Explain the description here"
                             value={(answers[currentRow.id] || {}).description || ""}
                             onChange={(e) => setAnswer(currentRow.id, { description: e.target.value })}
+                            disabled={isSubmitted}
                           />
                         </div>
                       )}
@@ -2650,7 +2681,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                             type="button"
                             style={{ ...styles.btn, ...(anyAnswered ? {} : styles.disabledBtn) }}
                             onClick={handleSaveDraft}
-                            disabled={!anyAnswered || isSaving}
+                            disabled={!anyAnswered || isSaving || isSubmitted}
                           >
                             {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft"}
                           </button>
@@ -2659,7 +2690,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                             type="button"
                             style={{ ...styles.btnPrimary, ...(canSubmit ? {} : styles.disabledBtn) }}
                             onClick={handleComplete}
-                            disabled={!canSubmit || isSaving}
+                            disabled={!canSubmit || isSaving || isSubmitted}
                             title={
                               !canSubmit
                                 ? missingDescriptions.size > 0
