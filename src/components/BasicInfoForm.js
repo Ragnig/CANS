@@ -1895,6 +1895,7 @@ const styles = {
   bottomNav: { display: "flex", justifyContent: "flex-end", gap: 8, alignItems: "center", width: "100%" },
   btn: { padding: "10px 14px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" },
   btnPrimary: { padding: "10px 14px", borderRadius: 8, border: "1px solid #636F9E", background: "#636F9E", color: "#fff", cursor: "pointer" },
+  // btnPrimaryDisabled: {  padding: "10px 14px",  borderRadius: 8, border: "1px solid #d1d5db",background: "#e5e7eb", color: "#9ca3af", cursor: "not-allowed"},
   disabledBtn: { opacity: 0.5, cursor: "not-allowed" },
 
   sectionBadge: (completed) => ({
@@ -2238,6 +2239,30 @@ const isQuestionCompleted = (a = {}) => {
   // Debounced autosave (unchanged)
   const autosaveTimerRef = useRef(null);
   const mountedRef = useRef(true);
+  const isSubmittedRef = useRef(isSubmitted);
+
+  useEffect(() => {
+  isSubmittedRef.current = isSubmitted;
+  }, [isSubmitted]);
+
+  function stopAutosave() {
+  try {
+    if (autosaveIntervalRef.current) {
+      clearInterval(autosaveIntervalRef.current);
+      autosaveIntervalRef.current = null;
+    }
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+    autosaveInFlightRef.current = false;
+    if (mountedRef.current) setIsAutosaving(false);
+    console.debug("[stopAutosave] cleared autosave timers");
+  } catch (err) {
+    console.warn("[stopAutosave] error", err);
+  }
+  }
+
   useEffect(() => {
     return () => {
       mountedRef.current = false;
@@ -2250,6 +2275,13 @@ const isQuestionCompleted = (a = {}) => {
     if (!isDirtyRef.current) return;
     if (autosaveInFlightRef.current) return;
 
+    // If form submitted, skip autosave
+    if (isSubmittedRef.current) {
+      if (mountedRef.current) setIsAutosaving(false);
+      return;
+    }
+
+    // Auto save continue if form i not submitted
     autosaveInFlightRef.current = true;
     if (mountedRef.current) setIsAutosaving(true);
 
@@ -2302,6 +2334,12 @@ const isQuestionCompleted = (a = {}) => {
       autosaveIntervalRef.current = null;
     }
 
+    if (isSubmittedRef.current) {
+    // ensure any leftover timers are cleared
+    stopAutosave();
+    return;
+    }
+
     if (!anyAnswered) return;
 
     if (isDirtyRef.current) {
@@ -2310,6 +2348,12 @@ const isQuestionCompleted = (a = {}) => {
 
     autosaveIntervalRef.current = setInterval(() => {
       try {
+       //  skip autosave if submitted
+      if (isSubmittedRef.current) {
+        stopAutosave();
+        return;
+      }
+      // This is auto save
         if (isDirtyRef.current && answersRef.current && Object.keys(answersRef.current).length > 0) {
           autosaveDraftIfNeeded().catch((err) => console.error("autosaveDraftIfNeeded error:", err));
         }
@@ -2375,6 +2419,9 @@ const isQuestionCompleted = (a = {}) => {
       return;
     }
 
+    setIsSubmitted(true);
+    stopAutosave();
+
     setIsSaving(true);
     try {
       const formattedSchema = formatSchemaJSON(formData, answers);
@@ -2395,10 +2442,10 @@ const isQuestionCompleted = (a = {}) => {
       if (res.data?.id) setServerDocId(res.data.id);
       setIsDirty(false);
       setLastSavedAt(new Date().toISOString());
-      setIsSubmitted(true); // mark form as submitted so UI becomes read-only
-      alert("✅ Form submitted successfully!");
+      alert("✅ Form submitted successfully!");  
     } catch (err) {
       console.error("Submit error:", err);
+      setIsSubmitted(false);
       alert("Error while submitting: " + (err.message || String(err)));
     } finally {
       setIsSaving(false);
@@ -2410,6 +2457,7 @@ const isQuestionCompleted = (a = {}) => {
   const badgePageStartIndexInSection = badgePageIndex * badgesPerPage;
   const badgeRowsForPage = activeSection.rows.slice(badgePageStartIndexInSection, badgePageStartIndexInSection + badgesPerPage);
   const sectionStartGlobal = sectionRanges.get(activeSectionId)?.start ?? 0;
+  const submitDisabled = !canSubmit || isSaving || isSubmitted;
 
   // ShouldShowDescribe unchanged
   const shouldShowDescribe = (() => {
@@ -2680,7 +2728,8 @@ const isQuestionCompleted = (a = {}) => {
                           <button
                             type="button"
                             style={{ ...styles.btn, ...(anyAnswered ? {} : styles.disabledBtn) }}
-                            onClick={handleSaveDraft}
+                            // onClick={handleSaveDraft}
+                            onClick={() => { if (!isSubmitted) handleSaveDraft(); }}
                             disabled={!anyAnswered || isSaving || isSubmitted}
                           >
                             {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft"}
@@ -2688,9 +2737,12 @@ const isQuestionCompleted = (a = {}) => {
 
                           <button
                             type="button"
-                            style={{ ...styles.btnPrimary, ...(canSubmit ? {} : styles.disabledBtn) }}
+                            // style={{ ...styles.btnPrimary, ...(canSubmit ? {} : styles.disabledBtn) }}
+                            style={{ ...styles.btnPrimary, ...(submitDisabled ? styles.disabledBtn : {}) }}
                             onClick={handleComplete}
-                            disabled={!canSubmit || isSaving || isSubmitted}
+                            // onClick={() => { if (!isSubmitted) handleComplete(); }}
+                            // disabled={!canSubmit || isSaving || isSubmitted}
+                            disabled={submitDisabled}
                             title={
                               !canSubmit
                                 ? missingDescriptions.size > 0
