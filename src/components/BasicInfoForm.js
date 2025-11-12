@@ -957,7 +957,7 @@ const demoSections = [
                 ],                  
         },
         { id: 82, 
-          title: "MotorMaternal Availability",
+          title: "Maternal Availability",
           help: [
                 "The child's mother/primary caregiver was emotionally and physically available to the child in the weeks following the birth.",
                 "The primary caregiver experienced some minor or transient stressors which made her slightly less available to the child (e.g., another child under two years of age, ill family member, return to work before six weeks of age).",
@@ -2627,8 +2627,8 @@ const isQuestionCompleted = (a = {}) => {
                     <React.Fragment key={r.id}>
                       <div
                         style={styles.badge(active, saved)}
-                        // onClick={() => {setCurrentGlobalIndex(globalIndex); }}
-                        onClick={() => { if (!isSubmitted) setCurrentGlobalIndex(globalIndex); }}
+                        onClick={() => {setCurrentGlobalIndex(globalIndex); }}
+                        // onClick={() => { if (!isSubmitted) setCurrentGlobalIndex(globalIndex); }}
                         role="button"
                         title={r.title}
                       >
