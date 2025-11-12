@@ -18,7 +18,7 @@ const demoSections = [
 
   {
       id: 1,
-      title: "Traumatic Experience",
+      title: "Trauma Experience",
       rows: [
         { id: 1, 
           title: "Sexual Abuse",
@@ -518,7 +518,7 @@ const demoSections = [
     },  
     {
       id: 5,
-      title: "Acculation",
+      title: "Acculturation",
       rows: [
         { id: 44, 
           title: "Language",
@@ -908,7 +908,7 @@ const demoSections = [
                 "Child was born underweight but is now within normal range or child is slightly beneath normal range. A child with a birth weight of between 1500 grams (3.3 pounds) and 2499 grams would be rated here.",
                 "Child is considerably underweight to the point of presenting a developmental risk. A child with a birth weight of less than 1000 grams (2.2 pounds) would be rated here.",
                 "Child is extremely underweight to the point where the child's life is threatened. A child with a birth weight of less than 1000 grams (2.2 pounds) would be rated here.",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable. ",
                 ],                  
         },
@@ -919,7 +919,7 @@ const demoSections = [
                 "Child's biological mother had some shortcomings in prenatal care or mild pregnancy-related illness. (6 or fewer visits, mild or controlled gestational diabetes, uncomplicated high-risk pregnancy.)",
                 "Child's biological mother received poor prenatal care or had a moderate pregnancy-related illness (e.g., 4 or fewer visits, high-risk pregnancy with some complications).",
                 "Child's biological mother had no prenatal care or a severe pregnancy-related illness (e.g., toxemia/preeclampsia).",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable. ",
                 ],                  
         },
@@ -930,7 +930,7 @@ const demoSections = [
                 "Child had mild in utero exposure (e.g., mother ingested alcohol/tobacco in small amounts fewer than four times) or current home exposure.",
                 "Child was exposed to alcohol/drugs in utero (e.g., illegal drugs or frequent alcohol/tobacco use).",
                 "Child was exposed to alcohol/drugs in utero and continues to be exposed at home. (e.g., withdrawal symptoms at birth).",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable.",
                 ],                  
         },
@@ -941,7 +941,7 @@ const demoSections = [
                 "Mild problems during delivery but child not affected (e.g., emergency C-section, minor physical injury).",
                 "Problems during delivery causing temporary functional difficulties (e.g., extended fetal distress, hemorrhage, uterine rupture). Apgar 4–7.",
                 "Severe problems with long-term implications (e.g., brain damage, extensive oxygen deprivation). Apgar ≤ 3.",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable.",
                 ],                  
         },
@@ -952,7 +952,7 @@ const demoSections = [
                 "The child's parents have no developmental disabilities. The child has siblings who are experiencing some mild developmental or behavioral problems (e.g., Attention Deficit, Oppositional Defiant, or Conduct Disorders). It may be that the child has at least one healthy sibling.",
                 "The child's parents have no developmental disabilities. The child has a sibling who is experiencing a significant developmental or behavioral problem (e.g., a severe version of any of the disorders cited above, or any developmental disorder).",
                 "One or both of the child's parents have been diagnosed with a developmental disability, or the child has multiple siblings who are experiencing significant developmental or behavioral problems (all siblings must have some problems).",
-                "Unk Unknown.",
+                "Unknown.",
                 "N/A - Not applicable.",
                 ],                  
         },
@@ -1658,7 +1658,7 @@ const styles = {
     marginLeft: 8,
   },
   overviewLink: {
-    color: "#0f0f0fff",
+    color: "#465485",
     textDecoration: "none",
     cursor: "pointer",
     fontWeight: 600,
@@ -1833,7 +1833,7 @@ const styles = {
     padding: "24px",
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 6,
     boxSizing: "border-box",
     background: "#fff",
   },
@@ -1894,7 +1894,8 @@ const styles = {
   pageSaveRow: { display: "flex", justifyContent: "center", gap: 12, alignItems: "center", flex: "0 0 auto" },
   bottomNav: { display: "flex", justifyContent: "flex-end", gap: 8, alignItems: "center", width: "100%" },
   btn: { padding: "10px 14px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" },
-  btnPrimary: { padding: "10px 14px", borderRadius: 8, border: "1px solid #4f46e5", background: "#4f46e5", color: "#fff", cursor: "pointer" },
+  btnPrimary: { padding: "10px 14px", borderRadius: 8, border: "1px solid #636F9E", background: "#636F9E", color: "#fff", cursor: "pointer" },
+  // btnPrimaryDisabled: {  padding: "10px 14px",  borderRadius: 8, border: "1px solid #d1d5db",background: "#e5e7eb", color: "#9ca3af", cursor: "not-allowed"},
   disabledBtn: { opacity: 0.5, cursor: "not-allowed" },
 
   sectionBadge: (completed) => ({
@@ -2013,6 +2014,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [serverDocId, setServerDocId] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const formDataRef = useRef(formData);
   const answersRef = useRef(answers);
@@ -2116,23 +2118,70 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
     return set;
   }, [visibleSections, answers]);
 
+  // - otherwise a score must exist
+// - if score is 2 or 3, a non-empty description is required
+const isQuestionCompleted = (a = {}) => {
+  if (!a) return false;
+  if (a.unk || a.na) return true;
+  if (a.score === null || a.score === undefined || a.score === "") return false;
+  const scoreNum = Number(a.score);
+  if (scoreNum === 2 || scoreNum === 3) {
+    return !!a.description && String(a.description).trim().length > 0;
+  }
+  return true;
+};
+
   // compute which sections are fully answered -> used to show green tick badge
-  const completedSections = useMemo(() => {
-    const set = new Set();
-    visibleSections.forEach((s) => {
-      const allAnsweredAndDescribed = (s.rows || []).every((r) => {
+  // const completedSections = useMemo(() => {
+  //   const set = new Set();
+  //   visibleSections.forEach((s) => {
+  //     const allAnsweredAndDescribed = (s.rows || []).every((r) => {
+  //       const a = answers[r.id];
+  //       if (!a) return false;
+  //       const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.description && a.description.trim().length > 0);
+  //       if (!answered) return false;
+  //       const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
+  //       if (requiresDescription && (!a.description || a.description.trim().length === 0)) return false;
+  //       return true;
+  //     });
+  //     if (allAnsweredAndDescribed) set.add(s.id);
+  //   });
+  //   return set;
+  // }, [visibleSections, answers, missingDescriptions]);
+
+      const completedSections = useMemo(() => {
+      const set = new Set();
+      visibleSections.forEach((s) => {
+        const allAnsweredAndDescribed = (s.rows || []).every((r) => {
+          const a = answers[r.id];
+          return isQuestionCompleted(a);
+        });
+        if (allAnsweredAndDescribed) set.add(s.id);
+      });
+      return set;
+    }, [visibleSections, answers]);
+
+  // New: allow submit when all visible questions are answered
+  const allQuestionsCompleted = useMemo(() => {
+    return visibleSections.every((s) =>
+      (s.rows || []).every((r) => {
         const a = answers[r.id];
         if (!a) return false;
-        const answered = a.unk || a.na || (a.score !== null && a.score !== undefined) || (a.description && a.description.trim().length > 0);
+        const answered =
+          a.unk ||
+          a.na ||
+          (a.score !== null && a.score !== undefined) ||
+          (a.description && String(a.description).trim().length > 0);
         if (!answered) return false;
         const requiresDescription = !a.unk && !a.na && (a.score === 2 || a.score === 3);
-        if (requiresDescription && (!a.description || a.description.trim().length === 0)) return false;
+        if (requiresDescription && (!a.description || String(a.description).trim().length === 0)) return false;
         return true;
-      });
-      if (allAnsweredAndDescribed) set.add(s.id);
-    });
-    return set;
-  }, [visibleSections, answers, missingDescriptions]);
+      })
+    );
+  }, [visibleSections, answers]);
+
+  // Final submit eligibility: either overview is complete OR all visible questions are completed, and there are no missing descriptions
+  const canSubmit = (isCompleteAllowed || allQuestionsCompleted) && missingDescriptions.size === 0;
 
   // Formatting function -> your JSON schema
   function formatSchemaJSON(overview, answers) {
@@ -2190,6 +2239,30 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
   // Debounced autosave (unchanged)
   const autosaveTimerRef = useRef(null);
   const mountedRef = useRef(true);
+  const isSubmittedRef = useRef(isSubmitted);
+
+  useEffect(() => {
+  isSubmittedRef.current = isSubmitted;
+  }, [isSubmitted]);
+
+  function stopAutosave() {
+  try {
+    if (autosaveIntervalRef.current) {
+      clearInterval(autosaveIntervalRef.current);
+      autosaveIntervalRef.current = null;
+    }
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+    autosaveInFlightRef.current = false;
+    if (mountedRef.current) setIsAutosaving(false);
+    console.debug("[stopAutosave] cleared autosave timers");
+  } catch (err) {
+    console.warn("[stopAutosave] error", err);
+  }
+  }
+
   useEffect(() => {
     return () => {
       mountedRef.current = false;
@@ -2202,6 +2275,13 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
     if (!isDirtyRef.current) return;
     if (autosaveInFlightRef.current) return;
 
+    // If form submitted, skip autosave
+    if (isSubmittedRef.current) {
+      if (mountedRef.current) setIsAutosaving(false);
+      return;
+    }
+
+    // Auto save continue if form i not submitted
     autosaveInFlightRef.current = true;
     if (mountedRef.current) setIsAutosaving(true);
 
@@ -2254,6 +2334,12 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
       autosaveIntervalRef.current = null;
     }
 
+    if (isSubmittedRef.current) {
+    // ensure any leftover timers are cleared
+    stopAutosave();
+    return;
+    }
+
     if (!anyAnswered) return;
 
     if (isDirtyRef.current) {
@@ -2262,6 +2348,12 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
 
     autosaveIntervalRef.current = setInterval(() => {
       try {
+       //  skip autosave if submitted
+      if (isSubmittedRef.current) {
+        stopAutosave();
+        return;
+      }
+      // This is auto save
         if (isDirtyRef.current && answersRef.current && Object.keys(answersRef.current).length > 0) {
           autosaveDraftIfNeeded().catch((err) => console.error("autosaveDraftIfNeeded error:", err));
         }
@@ -2314,8 +2406,9 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
   }
 
   async function handleComplete() {
+    // Only require overview fields when not all questions are completed.
     const missing = requiredOverviewFields.filter((k) => !formData[k] || String(formData[k]).trim() === "");
-    if (missing.length) {
+    if (!allQuestionsCompleted && missing.length) {
       alert("Please fill the required fields: " + missing.join(", "));
       return;
     }
@@ -2325,6 +2418,9 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
       alert("Please fill the required Describe field(s) for: " + titles.join(", "));
       return;
     }
+
+    setIsSubmitted(true);
+    stopAutosave();
 
     setIsSaving(true);
     try {
@@ -2346,9 +2442,10 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
       if (res.data?.id) setServerDocId(res.data.id);
       setIsDirty(false);
       setLastSavedAt(new Date().toISOString());
-      alert("✅ Form submitted successfully!");
+      alert("✅ Form submitted successfully!");  
     } catch (err) {
       console.error("Submit error:", err);
+      setIsSubmitted(false);
       alert("Error while submitting: " + (err.message || String(err)));
     } finally {
       setIsSaving(false);
@@ -2360,6 +2457,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
   const badgePageStartIndexInSection = badgePageIndex * badgesPerPage;
   const badgeRowsForPage = activeSection.rows.slice(badgePageStartIndexInSection, badgePageStartIndexInSection + badgesPerPage);
   const sectionStartGlobal = sectionRanges.get(activeSectionId)?.start ?? 0;
+  const submitDisabled = !canSubmit || isSaving || isSubmitted;
 
   // ShouldShowDescribe unchanged
   const shouldShowDescribe = (() => {
@@ -2396,7 +2494,14 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
             <div>
               <span style={styles.overviewLabel}>Case name</span>
               <span style={styles.overviewValue}>
-                <span style={styles.overviewLink}>{formData.caseName || "Bryant, Dianne"}</span>
+                <a
+                  href={`/cases/${formData.caseId || ""}`}
+                  style={styles.overviewLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {formData.caseName || "Bryant, Dianne"}
+                </a>
               </span>
             </div>
             <div style={{ marginTop: 10 }}>
@@ -2433,6 +2538,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                 onChange={(e) => updateFormField("memberRole", e.target.value)}
                 style={{ ...styles.memberRoleInput, padding: "6px 8px" }}
                 aria-label="Member role"
+                disabled={isSubmitted}
               >
                 <option value="">-- Select role --</option>
                 <option value="Child">Child</option>
@@ -2460,7 +2566,6 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                 title={s.title}
               >
                 <span style={styles.leftBtnText}>{s.title}</span>
-                {/* {completed ? <span style={{ float: "right", color: "#16a34a", fontWeight: 700 }}>✓</span> : null} */}
                 <span style={styles.sectionBadge(completed)}>{completed ? "✓" : ""}</span>
               </button>
             );
@@ -2516,14 +2621,14 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                   const globalIndex = sectionStartGlobal + badgePageStartIndexInSection + idx;
                   const active = currentGlobalIndex === globalIndex;
                   const a = answers[r.id];
-                  const saved = !!a && (a.unk || a.na || a.score != null || (a.description && String(a.description).trim().length > 0));
+                  // const saved = !!a && (a.unk || a.na || a.score != null || (a.description && String(a.description).trim().length > 0));
+                  const saved = isQuestionCompleted(a);
                   return (
                     <React.Fragment key={r.id}>
                       <div
                         style={styles.badge(active, saved)}
-                        onClick={() => {
-                          setCurrentGlobalIndex(globalIndex);
-                        }}
+                        // onClick={() => {setCurrentGlobalIndex(globalIndex); }}
+                        onClick={() => { if (!isSubmitted) setCurrentGlobalIndex(globalIndex); }}
                         role="button"
                         title={r.title}
                       >
@@ -2562,6 +2667,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                                 onChange={() => setAnswer(currentRow.id, { score: null, unk: isUnknown, na: !isUnknown })}
                                 style={styles.visibleRadio}
                                 aria-label={raw}
+                                disabled={isSubmitted}
                               />
                               {/* empty numeric space for alignment */}
                               <div style={styles.optionNumber(false, checked)} />
@@ -2584,6 +2690,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                               }}
                               style={styles.visibleRadio}
                               aria-label={`Option ${idx}: ${raw}`}
+                              disabled={isSubmitted}
                             />
 
                             {/* plain number label (no box) */}
@@ -2597,7 +2704,7 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                       })}
 
                       {shouldShowDescribe && (
-                        <div>
+                        <div style={{ marginTop: 24 }}>
                           <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
                             Describe <span style={{ color: "#eb0606ff", fontWeight: 700 }}>*</span>
                           </label>
@@ -2609,36 +2716,47 @@ export default function BasicInfoForm({ overview = demoOverview, sections = demo
                             placeholder="Explain the description here"
                             value={(answers[currentRow.id] || {}).description || ""}
                             onChange={(e) => setAnswer(currentRow.id, { description: e.target.value })}
+                            disabled={isSubmitted}
                           />
                         </div>
                       )}
 
                       {/* Buttons INSIDE the question container */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, width: "100%" }}>
                         {/* Left side: Save as Draft and Submit inside the container */}
-                        <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ display: "flex", gap: 16 }}>
                           <button
                             type="button"
                             style={{ ...styles.btn, ...(anyAnswered ? {} : styles.disabledBtn) }}
-                            onClick={handleSaveDraft}
-                            disabled={!anyAnswered || isSaving}
+                            // onClick={handleSaveDraft}
+                            onClick={() => { if (!isSubmitted) handleSaveDraft(); }}
+                            disabled={!anyAnswered || isSaving || isSubmitted}
                           >
                             {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft"}
                           </button>
 
                           <button
                             type="button"
-                            style={{ ...styles.btnPrimary, ...(isCompleteAllowed ? {} : styles.disabledBtn) }}
+                            // style={{ ...styles.btnPrimary, ...(canSubmit ? {} : styles.disabledBtn) }}
+                            style={{ ...styles.btnPrimary, ...(submitDisabled ? styles.disabledBtn : {}) }}
                             onClick={handleComplete}
-                            disabled={!isCompleteAllowed || isSaving || missingDescriptions.size > 0}
-                            title={missingDescriptions.size > 0 ? "Please fill required Describe fields before submitting" : ""}
+                            // onClick={() => { if (!isSubmitted) handleComplete(); }}
+                            // disabled={!canSubmit || isSaving || isSubmitted}
+                            disabled={submitDisabled}
+                            title={
+                              !canSubmit
+                                ? missingDescriptions.size > 0
+                                  ? "Please fill required Describe fields before submitting"
+                                  : "Please answer all questions or fill required overview fields"
+                                : ""
+                            }
                           >
                             {isSaving ? "Submitting..." : "Submit"}
                           </button>
                         </div>
 
                         {/* Right side: Back / Next navigation */}
-                        <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ display: "flex", gap: 16 }}>
                           <button type="button" style={{ ...styles.btn, ...(isFirst ? styles.disabledBtn : {}) }} onClick={goPrev} disabled={isFirst}>
                             Back
                           </button>
