@@ -957,7 +957,7 @@ const demoSections = [
                 ],                  
         },
         { id: 82, 
-          title: "MotorMaternal Availability",
+          title: "Maternal Availability",
           help: [
                 "The child's mother/primary caregiver was emotionally and physically available to the child in the weeks following the birth.",
                 "The primary caregiver experienced some minor or transient stressors which made her slightly less available to the child (e.g., another child under two years of age, ill family member, return to work before six weeks of age).",
@@ -1220,7 +1220,7 @@ const demoSections = [
           ] 
         },
         { id: 104, 
-          title: "Demonstates Effective Parenting Approches", 
+          title: "Demonstrates Effective Parenting Approaches", 
           help: [
             "Parent/caregiver(s) applies flexibility in parenting role; parent has knowledge of multiple parenting practices and is able to implement them effectively with his/her children in a manner that is consistent with the child's development and needs.",
             "Parent/caregiver(s) has knowledge of parenting practices that are consistent with child's needs and development, but may struggle at times to effectively implement them.",
@@ -2192,8 +2192,6 @@ const isQuestionCompleted = (a = {}) => {
           case_name: overview.caseName || "",
           date_of_assessment: overview.dateOfAssessment || "",
           worker_name: overview.workerName || "",
-        },
-        member_details: {
           person_id: overview.personId || "",
           member_name: overview.memberName || "",
           member_dob: overview.memberDob || "",
@@ -2405,52 +2403,59 @@ const isQuestionCompleted = (a = {}) => {
     }
   }
 
-  async function handleComplete() {
-    // Only require overview fields when not all questions are completed.
-    const missing = requiredOverviewFields.filter((k) => !formData[k] || String(formData[k]).trim() === "");
-    if (!allQuestionsCompleted && missing.length) {
-      alert("Please fill the required fields: " + missing.join(", "));
+async function handleComplete() {
+  // validation (unchanged)
+  const missing = requiredOverviewFields.filter((k) => !formData[k] || String(formData[k]).trim() === "");
+  if (!allQuestionsCompleted && missing.length) {
+    alert("Please fill the required fields: " + missing.join(", "));
+    return;
+  }
+  if (missingDescriptions.size > 0) {
+    const titles = [...missingDescriptions].map((id) => rowTitlesById.get(id) || `Question ${id}`);
+    alert("Please fill the required Describe field(s) for: " + titles.join(", "));
+    return;
+  }
+
+  // Prevent duplicate submissions and ensure UI disables "Save as Draft"
+  if (isSaving) return;
+  setIsSaving(true);
+
+  try {
+    const formattedSchema = formatSchemaJSON(formData, answers);
+    const payload = {
+      status: "complete",
+      schema_json: formattedSchema,
+      overview: formData,
+      answers,
+      timestamp: new Date().toISOString(),
+      serverDocId,
+    };
+
+    const res = await saveDraftPayload(payload);
+
+    if (!res.ok) {
+      alert(res.data?.message || "Submit failed");
       return;
     }
 
-    if (missingDescriptions.size > 0) {
-      const titles = [...missingDescriptions].map((id) => rowTitlesById.get(id) || `Question ${id}`);
-      alert("Please fill the required Describe field(s) for: " + titles.join(", "));
-      return;
-    }
+    if (res.data?.id) setServerDocId(res.data.id);
+    setIsDirty(false);
+    setLastSavedAt(new Date().toISOString());
 
+    // only on success mark submitted and stop autosave
     setIsSubmitted(true);
+    isSubmittedRef.current = true;
     stopAutosave();
 
-    setIsSaving(true);
-    try {
-      const formattedSchema = formatSchemaJSON(formData, answers);
-      const payload = {
-        status: "complete",
-        schema_json: formattedSchema,
-        overview: formData,
-        answers,
-        timestamp: new Date().toISOString(),
-        serverDocId,
-      };
-
-      const res = await saveDraftPayload(payload);
-      if (!res.ok) {
-        alert(res.data?.message || "Submit failed");
-        return;
-      }
-      if (res.data?.id) setServerDocId(res.data.id);
-      setIsDirty(false);
-      setLastSavedAt(new Date().toISOString());
-      alert("✅ Form submitted successfully!");  
-    } catch (err) {
-      console.error("Submit error:", err);
-      setIsSubmitted(false);
-      alert("Error while submitting: " + (err.message || String(err)));
-    } finally {
-      setIsSaving(false);
-    }
+    alert("Form is submitted Successfully");
+  } catch (err) {
+    console.error("Submit error:", err);
+    alert("Error while submitting: " + (err.message || String(err)));
+    // keep isSubmitted false so user can retry
+  } finally {
+    setIsSaving(false);
   }
+}
 
   const activeSection = visibleSections.find((s) => s.id === activeSectionId) || visibleSections[0] || { rows: [] };
   const sectionRowCount = activeSection.rows.length;
@@ -2458,6 +2463,7 @@ const isQuestionCompleted = (a = {}) => {
   const badgeRowsForPage = activeSection.rows.slice(badgePageStartIndexInSection, badgePageStartIndexInSection + badgesPerPage);
   const sectionStartGlobal = sectionRanges.get(activeSectionId)?.start ?? 0;
   const submitDisabled = !canSubmit || isSaving || isSubmitted;
+  const saveDisabled = !anyAnswered || isSaving || isSubmitted;
 
   // ShouldShowDescribe unchanged
   const shouldShowDescribe = (() => {
@@ -2579,7 +2585,7 @@ const isQuestionCompleted = (a = {}) => {
               {flatRows[currentGlobalIndex]?.sectionTitle ?? activeSection.title ?? "Domain"}
             </div>
 
-            <div style={{ display: "flex", gap: 10, alignItems: "center", whiteSpace: "nowrap" }}>
+            {/* <div style={{ display: "flex", gap: 10, alignItems: "center", whiteSpace: "nowrap" }}>
               <button className="btn" onClick={() => onSelectSection(visibleSections[0]?.id)} disabled={activeSectionId === visibleSections[0]?.id} style={styles.btn}>
                 « First
               </button>
@@ -2611,7 +2617,7 @@ const isQuestionCompleted = (a = {}) => {
               <button className="btn" onClick={() => onSelectSection(visibleSections[visibleSections.length - 1]?.id)} disabled={activeSectionId === visibleSections[visibleSections.length - 1]?.id} style={styles.btn}>
                 Last »
               </button>
-            </div>
+            </div> */}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: "1 1 auto", overflow: "hidden" }}>
@@ -2627,8 +2633,8 @@ const isQuestionCompleted = (a = {}) => {
                     <React.Fragment key={r.id}>
                       <div
                         style={styles.badge(active, saved)}
-                        // onClick={() => {setCurrentGlobalIndex(globalIndex); }}
-                        onClick={() => { if (!isSubmitted) setCurrentGlobalIndex(globalIndex); }}
+                        onClick={() => {setCurrentGlobalIndex(globalIndex); }}
+                        // onClick={() => { if (!isSubmitted) setCurrentGlobalIndex(globalIndex); }}
                         role="button"
                         title={r.title}
                       >
@@ -2725,13 +2731,21 @@ const isQuestionCompleted = (a = {}) => {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, width: "100%" }}>
                         {/* Left side: Save as Draft and Submit inside the container */}
                         <div style={{ display: "flex", gap: 16 }}>
-                          <button
+                          {/* <button
                             type="button"
                             style={{ ...styles.btn, ...(anyAnswered ? {} : styles.disabledBtn) }}
                             // onClick={handleSaveDraft}
-                            onClick={() => { if (!isSubmitted) handleSaveDraft(); }}
+                            // onClick={() => { if (!isSubmitted) handleSaveDraft(); }}
+                            onClick={() => { if (!isSubmitted && !isSaving) handleSaveDraft(); }}
                             disabled={!anyAnswered || isSaving || isSubmitted}
-                          >
+                          > */}
+                          <button
+                            type="button"
+                            style={{ ...styles.btn, ...(saveDisabled ? styles.disabledBtn : {}) }}
+                            onClick={() => { if (!saveDisabled) handleSaveDraft(); }}
+                            disabled={saveDisabled}
+                            aria-disabled={saveDisabled}
+                            >
                             {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft"}
                           </button>
 
@@ -2743,13 +2757,13 @@ const isQuestionCompleted = (a = {}) => {
                             // onClick={() => { if (!isSubmitted) handleComplete(); }}
                             // disabled={!canSubmit || isSaving || isSubmitted}
                             disabled={submitDisabled}
-                            title={
-                              !canSubmit
-                                ? missingDescriptions.size > 0
-                                  ? "Please fill required Describe fields before submitting"
-                                  : "Please answer all questions or fill required overview fields"
-                                : ""
-                            }
+                            // title={
+                            //   !canSubmit
+                            //     ? missingDescriptions.size > 0
+                            //       ? "Please fill required Describe fields before submitting"
+                            //       : "Please answer all questions or fill required overview fields"
+                            //     : ""
+                            // }
                           >
                             {isSaving ? "Submitting..." : "Submit"}
                           </button>
