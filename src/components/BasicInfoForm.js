@@ -22,7 +22,7 @@ const requiredOverviewFields = ["caseId", "caseName", "personId", "memberName", 
 const badgesPerPage = 15;
 
 /* -------------------- COMPONENT -------------------- */
-export default function BasicInfoForm({ overview = demoOverview, sections = demoSections }) {
+export default function BasicInfoForm({ overview = demoOverview, sections = demoSections, onClose }) {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
   const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -493,11 +493,30 @@ function formatSchemaJSON(overview, answers) {
       setIsDirty(false);
       setLastSavedAt(new Date().toISOString());
       alert("✅ Saved as draft!");
+      savedOk = true;
     } catch (err) {
       console.error("Save draft error:", err);
       alert("Error while saving draft: " + (err.message || String(err)));
     } finally {
       setIsSaving(false);
+    //    If saved successfully, the form closes
+            if (savedOk) {
+        try {
+          if (typeof onClose === "function") {
+            onClose();
+          } else if (typeof window !== "undefined") {
+            // Prefer going back in history if possible
+            if (window.history && window.history.length > 1) {
+              window.history.back();
+            } else {
+              // fallback - redirect to root or cases list
+              window.location.href = `/`;
+            }
+          }
+        } catch (err) {
+          console.warn("Error while attempting to close form after save:", err);
+        }
+      }
     }
   }
 
@@ -789,41 +808,6 @@ function formatSchemaJSON(overview, answers) {
                           />
                         </div>
                       )}
-
-                      {/* Buttons INSIDE the question container */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, width: "100%" }}>
-                        {/* Left side: Save as Draft and Submit inside the container */}
-                        <div style={{ display: "flex", gap: 16 }}>
-                          <button
-                            type="button"
-                            style={{ ...styles.btn, ...(saveDisabled ? styles.disabledBtn : {}) }}
-                            onClick={() => { if (!saveDisabled) handleSaveDraft(); }}
-                            disabled={saveDisabled}
-                            aria-disabled={saveDisabled}
-                          >
-                            {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft"}
-                          </button>
-
-                          <button
-                            type="button"
-                            style={{ ...styles.btnPrimary, ...(submitDisabled ? styles.disabledBtn : {}) }}
-                            onClick={() => { if (!submitDisabled) setConfirmOpen(true); }}
-                            disabled={submitDisabled}
-                          >
-                            {isSaving ? "Submitting..." : "Submit"}
-                          </button>
-                        </div>
-
-                        {/* Right side: Back / Next navigation */}
-                        <div style={{ display: "flex", gap: 16 }}>
-                          <button type="button" style={{ ...styles.btn, ...(isFirst ? styles.disabledBtn : {}) }} onClick={goPrev} disabled={isFirst}>
-                            Back
-                          </button>
-                          <button type="button" style={{ ...styles.btnPrimary, ...(isLast ? styles.disabledBtn : {}) }} onClick={goNext} disabled={isLast}>
-                            Next
-                          </button>
-                        </div>
-                      </div>
                     </>
                   ) : (
                     <div style={{ color: "#6b7280" }}>No questions in this section.</div>
@@ -832,6 +816,43 @@ function formatSchemaJSON(overview, answers) {
               </div>
             </div>
           </div>
+
+          {/* Buttons INSIDE the question container */}
+          // Footer
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, width: "100%" }}>
+            {/* Left side: Save as Draft and Submit inside the container */}
+            <div style={{ display: "flex", gap: 16 }}>
+              <button
+                type="button"
+                style={{ ...styles.btn, ...(saveDisabled ? styles.disabledBtn : {}) }}
+                onClick={() => { if (!saveDisabled) handleSaveDraft(); }}
+                disabled={saveDisabled}
+                aria-disabled={saveDisabled}
+              >
+                {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft & Close"}
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.btnPrimary, ...(submitDisabled ? styles.disabledBtn : {}) }}
+                onClick={() => { if (!submitDisabled) setConfirmOpen(true); }}
+                disabled={submitDisabled}
+              >
+                {isSaving ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+
+            {/* Right side: Back / Next navigation */}
+            <div style={{ display: "flex", gap: 16 }}>
+              <button type="button" style={{ ...styles.btn, ...(isFirst ? styles.disabledBtn : {}) }} onClick={goPrev} disabled={isFirst}>
+                Back
+              </button>
+              <button type="button" style={{ ...styles.btnPrimary, ...(isLast ? styles.disabledBtn : {}) }} onClick={goNext} disabled={isLast}>
+                Next
+              </button>
+            </div>
+          </div>
+
 
           {/* Confirmation modal */}
           {confirmOpen && (
