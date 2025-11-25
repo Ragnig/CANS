@@ -1,0 +1,106 @@
+import express from "express";
+import cors from "cors";
+import fs from "fs";
+import path from "path";
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// ===== File setup =====
+const CSV_FILE = path.join(process.cwd(), "basic_info.csv");
+
+// ===== Helper: Convert object to CSV line =====
+function objectToCSVLine(obj) {
+  const safeValue = (val) =>
+    `"${String(val).replace(/"/g, '""').replace(/\n/g, " ")}"`;
+  return Object.values(obj).map(safeValue).join(",") + "\n";
+}
+
+// ===== Helper: Write CSV Header if file doesn't exist =====
+function ensureCSVHeader() {
+  if (!fs.existsSync(CSV_FILE)) {
+    const header = "id,status,schemajson,createdat\n";
+    fs.writeFileSync(CSV_FILE, header);
+    console.log("✅ CSV file created with header");
+  }
+}
+
+// ===== Helper: Get the next incremental ID =====
+function getNextId() {
+  if (!fs.existsSync(CSV_FILE)) return 1; // file doesn’t exist yet
+
+  const csvData = fs.readFileSync(CSV_FILE, "utf-8").trim();
+  const lines = csvData.split("\n");
+
+  // If only header exists → next ID = 1
+  if (lines.length <= 1) return 1;
+
+  const lastLine = lines[lines.length - 1];
+  const lastId = parseInt(lastLine.split(",")[0].replace(/"/g, ""), 10);
+  return isNaN(lastId) ? 1 : lastId + 1;
+}
+
+// ===== POST: Save Data =====
+app.post("/api/basic-info", async (req, res) => {
+  try {
+    ensureCSVHeader();
+
+    const nextId = getNextId();
+    const { status, ...schemajson } = req.body;
+
+    const data = {
+      id: nextId,
+      status: status || "draft",
+      schemajson: JSON.stringify(schemajson),
+      createdat: new Date().toISOString(),
+    };
+
+    const line = objectToCSVLine(data);
+    fs.appendFileSync(CSV_FILE, line);
+    console.log(`✅ Data appended to CSV (ID: ${nextId})`);
+
+    res.status(201).json({ message: `✅ Data saved successfully! ID: ${nextId}` });
+  } catch (error) {
+    console.error("❌ Error saving data:", error);
+    res.status(500).json({ message: "Error saving data" });
+  }
+});
+
+// ===== GET: Retrieve All Data =====
+app.get("/api/basic-info", (req, res) => {
+  try {
+    ensureCSVHeader();
+    const csvData = fs.readFileSync(CSV_FILE, "utf-8").trim();
+
+    const [headerLine, ...lines] = csvData.split("\n");
+    const headers = headerLine.split(",");
+
+    const jsonData = lines.map((line) => {
+      const values = line
+        .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+        .map((v) => v.replace(/^"|"$/g, "").replace(/""/g, '"'));
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = values[index];
+      });
+      return obj;
+    });
+
+    res.json(jsonData.reverse()); // latest first
+  } catch (error) {
+    console.error("❌ Error retrieving data:", error);
+    res.status(500).json({ message: "Error retrieving data" });
+  }
+});
+
+// ===== Root Route =====
+app.get("/", (req, res) => {
+  res.send("🚀 Backend is running and saving data to CSV file with auto-increment ID");
+});
+
+// ===== Start Server =====
+const PORT = 5000;
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT} (CSV Mode with Auto ID)`)
+);

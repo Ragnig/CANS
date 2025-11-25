@@ -1,0 +1,16 @@
+Step 1: Create the root folder
+
+mkdir react-app-basic-info
+cd react-app-basic-info
+
+
+Step 2: Create backend folder
+
+mkdir backend
+cd backend
+npm init -y
+cd ..
+
+
+Step 3: Create frontend (React) app inside the project
+npx create-react-app frontend

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <link rel="stylesheet" href="../../adx_bootstrap/bootstrap.min.css" type="text/css" />
+    <style>
+        .form-group.required .control-label:after {
+            content: "*";
+            color: red;
+        }
+
+        .enabled {
+            background-color: white !important;
+        }
+
+        @font-face {
+            font-family: 'Office365Icons';
+            src: url('https://appsforoffice.microsoft.com/fabric/fonts/icons/office365icons.eot?');
+            src: url('https://appsforoffice.microsoft.com/fabric/fonts/icons/office365icons.eot?#iefix') format('embedded-opentype'), url('https://appsforoffice.microsoft.com/fabric/fonts/icons/office365icons.woff?') format('woff'), url('https://appsforoffice.microsoft.com/fabric/fonts/icons/office365icons.ttf?') format('truetype'), url('https://appsforoffice.microsoft.com/fabric/fonts/icons/office365icons.svg?#office365icons') format('svg');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        .ms-Icon {
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-font-smoothing: antialiased;
+            display: inline-block;
+            font-family: Office365Icons;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 1;
+        }
+
+        .ms-Icon-search:before {
+            content: '\e039';
+        }
+
+        .search-button {
+            margin-left: 2%;
+        }
+
+        .title {
+            padding: 10px 0px;
+            margin-bottom: 5px;
+        }
+
+        .button {
+            width: 25%;
+            margin-right: 3%;
+            margin-top: 10%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid" id="cxp_ResolveCase" role="presentation">
+        <div class="row" role="presentation">
+            <div class="col-sm-11">
+                <form id="cxp_ResolveCaseForm" class="form-horizontal" role="form">
+                    <input type="hidden" id="contactId" />
+                    <input type="hidden" id="contactEmail" />
+                    <div class="form-group" role="presentation">
+                        <div class="col-sm-2-offset" role="presentation"></div>
+                        <div class="col-sm-12" role="presentation">
+                            <div class="panel panel-success" style="display:none" id="Notifications_panel">
+                                <div class="panel-heading">Information</div>
+                                <div class="panel-body">
+                                    <strong><span id="Notitication_msg" class="text-success"></span></strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12" role="presentation">
+                            <div class="panel panel-danger" style="display:none" id="Err_panel">
+                                <div class="panel-heading">Error</div>
+                                <div class="panel-body">
+                                    <strong><span id="Err_msg" class="text-danger"></span></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group required" role="presentation">
+                        <label class=" col-sm-2 control-label text-left" for="resolutionType"
+                            id="resolutionTypeLabel">Resolution Type:</label>
+                        <div class="col-sm-8" role="presentation">
+                            <select class="form-control" id="resolutionType" name="resolutionType" tabindex="0"
+                                required></select>
+                        </div>
+                    </div>
+                    <div class="form-group required" role="presentation">
+                        <label class=" col-sm-2 control-label text-left" for="resolution"
+                            id="ResololutionLabel">Resolution:</label>
+                        <div class="col-sm-8" role="presentation">
+                            <textarea name="resolution" id="resolution" class="form-control" required></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/WebResources/cxp_/libs/jquery-3.4.1.min.js"></script>
+    <script src="../../msa_portalmanagement/scripts/jquery.validate.min.js" defer></script>
+    <script src="../../msa_portalmanagement/scripts/rsvp.min.js"></script>
+    <script src="../../cxp_odatautils.js"></script>
+    <script type="text/javascript">
+        var resolutionTypeField = jQuery("#resolutionType");
+        var resolutionField = jQuery("#resolution");
+        var resolveButton = jQuery("#resolve");
+        var cancelButton = jQuery("#cancel");
+        var errorMessage = jQuery("#Err_msg");
+        var errorPanel = jQuery("#Err_panel");
+        var technicalIssueErrorPanel = jQuery("#Err_panel_technical_issue");
+        var resolutionTypeOptions = [
+            { value: 5, text: "Problem Solved" },
+            { value: 1000, text: "Information Provided" }
+        ];
+        var caseId = null;
+
+        const baseUrl = '/api/data/v9.0/';
+        function getData(url, callback) {
+            $.ajax({
+                url: url.join(""),
+                headers: {
+                    Prefer: "odata.maxpagesize=500,odata.include-annotations=*"
+                },
+                dataType: "json",
+                success: function (result) {
+                    callback(result);
+                }
+            });
+        }
+        function postData(url, data, successCallback, errorCallback) {
+            $.ajax({
+                url: url.join(""),
+                headers: {
+                    "OData-MaxVersion": "4.0",
+                    "OData-Version": "4.0",
+                    "Accept": "application/json"
+                },
+                type: 'POST',
+                dataType: "json",
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                complete: function (result) {
+                    if (result.status === 204) {
+                        successCallback(result);
+                    }
+                    else {
+                        errorCallback(result);
+                    }
+                }
+            });
+        }
+        function patchData(url, data, callback) {
+            $.ajax({
+                url: url.join(""),
+                headers: {
+                    "OData-Version": "4.0",
+                    "OData-MaxVersion": "4.0",
+                    "Accept": "application/json"
+                },
+                method: 'PATCH',
+                data: JSON.stringify(data),
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (result) {
+                    callback(result);
+                }
+            });
+        }
+        function getCase(caseGuid, callback) {
+            getData([baseUrl, "incidents(", caseGuid, ")?$select=statuscode,cxp_resolutiondetails"], callback);
+        }
+        function resolveCaseSuccessCallback() {
+        }
+        function resolveCaseErrorCallback(errorText) {
+            showErrorMessage("Something went wrong. Try again after sometime.\nIf issue persists contact administrator.");
+        }
+        function checkIfAllRequiredFieldsArePopulated() {
+            var resolutionTypeValue = $("#resolutionType option:selected").val();
+            var resolutionValue = resolutionField.val().trim();
+            return resolutionValue !== "" && resolutionTypeValue;
+        }
+        function enableSubmitButtonIfNeeded() {
+            if (checkIfAllRequiredFieldsArePopulated()) {
+                resolveButton.prop("disabled", false);
+            }
+            else {
+                resolveButton.prop("disabled", true);
+            }
+        }
+        function resolveButtonHandler() {
+            var caseEntity = {
+                cxp_resolutiondetails: $("#resolution").val()
+            };
+            patchData([baseUrl, "incidents(", caseId, ")"], caseEntity, function () {
+                var parameters = {
+                    "BillableTime": 0,
+                    "IncidentId": { "incidentid": caseId, "@odata.type": "Microsoft.Dynamics.CRM.incident" },
+                    "Resolution": $("#resolution").val(),
+                    "Status": $("#resolutionType").val()
+                };
+                postData([baseUrl, "ResolveIncident"], parameters, resolveCaseSuccessCallback, resolveCaseErrorCallback)
+            });
+        }
+        function initializeResolutionTypeField() {
+            resolutionTypeField.change(function () {
+                enableSubmitButtonIfNeeded();
+            });
+        }
+        function initializeResolutionField() {
+            resolutionField.change(function () {
+                enableSubmitButtonIfNeeded();
+            });
+        }
+        function setResolutionDefaultValues() {
+            getCase(caseId, function (cases) {
+                $("#resolution").val(cases["cxp_resolutiondetails"]);
+            });
+        }
+        function initializeCancelButton() {
+            cancelButton.click(function () {
+                if (window.parent && window.parent.Alert) {
+                    window.parent.Alert.hide();
+                }
+            });
+        }
+        function initializeResolveButton() {
+            resolveButton.click(function () {
+                resolveButtonHandler();
+            });
+        }
+        function populateResolutionTypeField() {
+            resolutionTypeOptions.forEach(function (option) {
+                resolutionTypeField.append($("<option>", {
+                    value: option.value,
+                    text: option.text
+                }));
+            });
+        }
+        function showErrorMessage(text) {
+            errorMessage.text(text);
+            errorPanel.show();
+        }
+        function initializeForm() {
+            initializeResolutionTypeField();
+            initializeResolutionField();
+            initializeCancelButton();
+            initializeResolveButton();
+            populateResolutionTypeField();
+            setResolutionDefaultValues();
+        }
+        function getUrlParameter(queryString, name) {
+            name = name.replace(/\\/g, '\\\\');
+            name = name.replace(/[\[]/g, '\\[').replace(/[\]]/g, '\\]');
+            var regex = new RegExp('[\\?&]?' + name + '=([^&#]*)');
+            var results = regex.exec(queryString);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        };
+
+        jQuery(document).ready(function () {
+            var tempCaseId = getUrlParameter(location.search, 'Data');
+            if (!(tempCaseId && tempCaseId.trim().length > 0)) {
+                showErrorMessage("Form initialization error.");
+                return;
+            }
+            caseId = tempCaseId[0] === '{' ? tempCaseId.substring(1, tempCaseId.length - 1) : tempCaseId;
+            initializeForm();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,786 @@
+import React, { useState } from "react";
+import axios from "axios";
+
+const CombinedForm = () => {
+  const [formData, setFormData] = useState({
+    caseId: "",
+    caseName: "",
+    dateOfAssessment: "",
+    workerName: "",
+    personId: "",
+    memberName: "",
+    memberDob: "",
+    memberRole: "",
+  });
+
+  const [isOpen, setIsOpen] = useState(null);
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [concreteData, setConcreteData] = useState({});
+
+const sections = [
+  {
+    id: 1,
+    title: "Safety",
+    rows: [
+      {
+        id: 95,
+        title: "Safety",
+        help: [
+          "This level indicates that the present placement is safe for the child in his or her present condition.",
+          "Check for any immediate hazards that could affect the child’s well-being.",
+          "Assess whether safety measures are consistently implemented.",
+          "Consider long-term safety planning and risk mitigation.",
+        ],
+      },
+      {
+        id: 96,
+        title: "Supervision",
+        help: [
+          "Assesses understanding of rights, duties, and legal obligations as a caregiver.",
+          "Evaluate consistency in supervision throughout the day.",
+          "Ensure that the caregiver identifies situations requiring intervention.",
+          "Check if the child has unsupervised access to potentially dangerous areas.",
+        ],
+      },
+      {
+        id: 97,
+        title: "Neighbourhood Safety and Resources",
+        help: [
+          "Examines stability of income, budgeting, and ability to meet basic needs.",
+          "Evaluate accessibility to parks, schools, and safe recreational areas.",
+          "Assess neighborhood crime rates and general security measures.",
+          "Check availability of community resources for child and family support.",
+        ],
+      },
+      {
+        id: 98,
+        title: "Condition of the Home",
+        help: [
+          "Evaluates planning, scheduling, and ability to manage tasks effectively.",
+          "Inspect cleanliness and orderliness of living spaces.",
+          "Check for structural issues such as leaks or broken fixtures.",
+          "Ensure functional utilities, fire alarms, and safety devices.",
+        ],
+      },
+      {
+        id: 99,
+        title: "Marital/Partner Violence in the Home",
+        help: [
+          "Checks access to concrete supports such as food, housing, transportation, etc.",
+          "Assess history of domestic disputes or violence.",
+          "Identify any potential threats to the child’s emotional or physical safety.",
+          "Evaluate support networks for victims and children.",
+        ],
+      },
+    ],
+  },
+  {
+    id: 2,
+    title: "Knowledge of Parenting and Child Development",
+    rows: [
+      {
+        id: 100,
+        title: "Knowledge of Child's Needs",
+        help: [
+          "Determines if caregiver understands the child’s emotional and physical needs.",
+          "Check if caregiver responds appropriately to developmental milestones.",
+          "Evaluate understanding of the child’s nutrition, education, and health needs.",
+          "Assess knowledge of safe and effective parenting techniques.",
+        ],
+      },
+      {
+        id: 101,
+        title: "Nutrition Management",
+        help: [
+          "Evaluate adequacy of child’s daily meals and snacks.",
+          "Assess knowledge of healthy food preparation and hygiene.",
+          "Check caregiver’s awareness of dietary restrictions and allergies.",
+          "Ensure meals meet child’s nutritional and developmental needs.",
+        ],
+      },
+      {
+        id: 102,
+        title: "Discipline",
+        help: [
+          "Check if caregiver uses positive reinforcement techniques.",
+          "Evaluate consistency and fairness of rules and consequences.",
+          "Assess knowledge of age-appropriate disciplinary strategies.",
+          "Ensure discipline methods do not harm the child emotionally or physically.",
+        ],
+      },
+      {
+        id: 103,
+        title: "Learning Environment",
+        help: [
+          "Ensures child has adequate space and resources for learning.",
+          "Check availability of books, educational tools, and stimulation.",
+          "Evaluate caregiver’s engagement in child’s learning activities.",
+          "Assess whether learning environment is safe and supportive.",
+        ],
+      },
+      {
+        id: 104,
+        title: "Demonstrates Effective Parenting Approaches",
+        help: [
+          "Assesses caregiver’s consistency in setting limits and expectations.",
+          "Evaluate empathy, patience, and emotional support provided to the child.",
+          "Check communication skills and responsiveness to child’s needs.",
+          "Assess adaptability to changing circumstances and child’s developmental stage.",
+        ],
+      },
+    ],
+  },
+  {
+    id: 3,
+    title: "Identification and Use of Concrete Supports in Times of Need",
+    rows: [
+      {
+        id: 105,
+        title: "Involvement with Care",
+        help: [
+          "Evaluates hygiene and maintenance of the living environment.",
+          "Check availability of medical, educational, and social support services.",
+          "Assess caregiver’s ability to access emergency resources.",
+          "Ensure child’s needs are met during crises or unexpected events.",
+        ],
+      },
+      {
+        id: 106,
+        title: "Parent/Caregiver's Knowledge of Rights and Responsibilities",
+        help: [
+          "Assess awareness of legal responsibilities toward the child.",
+          "Check understanding of reporting obligations and child protection laws.",
+          "Evaluate knowledge of entitlements to social and financial support.",
+          "Ensure the caregiver knows how to protect the child’s rights.",
+        ],
+      },
+      {
+        id: 107,
+        title: "Financial Status",
+        help: [
+          "Evaluate household income stability and budgeting skills.",
+          "Assess caregiver’s ability to provide for child’s essential needs.",
+          "Check for access to financial assistance and resources.",
+          "Ensure financial decisions prioritize child welfare.",
+        ],
+      },
+      {
+        id: 108,
+        title: "Organization",
+        help: [
+          "Evaluate planning and scheduling of daily routines.",
+          "Assess caregiver’s ability to coordinate appointments and activities.",
+          "Check for adequate record-keeping for child’s health and education.",
+          "Ensure organization contributes to child’s stability and consistency.",
+        ],
+      },
+      {
+        id: 109,
+        title: "Resources",
+        help: [
+          "Identify availability of community, family, and governmental supports.",
+          "Evaluate access to transportation, food, and housing services.",
+          "Check caregiver’s knowledge of support programs and how to use them.",
+          "Ensure child’s needs can be met through existing resources.",
+        ],
+      },
+      {
+        id: 110,
+        title: "Knowledge of Social Service Options",
+        help: [
+          "Assess caregiver’s understanding of available social programs.",
+          "Evaluate ability to navigate support systems effectively.",
+          "Check readiness to seek help when needed.",
+          "Ensure caregiver can identify appropriate services for emergencies.",
+        ],
+      },
+      {
+        id: 111,
+        title: "Residential Stability",
+        help: [
+          "Assess history of relocations and housing stability.",
+          "Evaluate potential disruptions to child’s education and social environment.",
+          "Check support network for housing emergencies.",
+          "Ensure consistent and stable living arrangements for the child.",
+        ],
+      },
+      {
+        id: 112,
+        title: "Job Functioning",
+        help: [
+          "Evaluate work schedule stability and flexibility for child care.",
+          "Assess financial reliability provided by employment.",
+          "Check impact of work on caregiver’s availability and engagement with child.",
+          "Ensure employment does not negatively affect child’s well-being.",
+        ],
+      },
+    ],
+  },
+  {
+    id: 4,
+    title: "Positive Family, Community and Social Connections",
+    rows: [
+      {
+        id: 113,
+        title: "Partner Relations",
+        help: [
+          "Determine if caregiver maintains healthy relationships with partners.",
+          "Assess communication skills and conflict resolution.",
+          "Evaluate influence of partner on child’s safety and development.",
+          "Check for support from partner in child-rearing responsibilities.",
+        ],
+      },
+      {
+        id: 114,
+        title: "Relations with Extended Family",
+        help: [
+          "Check for supportive and positive extended family connections.",
+          "Assess involvement in child’s upbringing and emotional support.",
+          "Evaluate frequency and quality of interactions.",
+          "Ensure relationships do not negatively affect child’s well-being.",
+        ],
+      },
+      {
+        id: 115,
+        title: "Community Involvement",
+        help: [
+          "Assess caregiver’s participation in community programs and events.",
+          "Check for social support networks outside the family.",
+          "Evaluate exposure to positive role models for the child.",
+          "Ensure involvement contributes to child’s development and safety.",
+        ],
+      },
+      {
+        id: 116,
+        title: "Natural Supports",
+        help: [
+          "Identify reliable informal support from friends, neighbors, or mentors.",
+          "Assess access to guidance and emotional support.",
+          "Evaluate ability to cope with stress using natural supports.",
+          "Ensure child benefits from a stable support network.",
+        ],
+      },
+    ],
+  },
+  {
+    id: 5,
+    title: "Ability to Nurture Social and Emotional Competence of Children",
+    rows: [
+      {
+        id: 117,
+        title: "Parent/Caregiver's Ability to Listen as Parent",
+        help: [
+          "Evaluate active listening skills and empathy toward the child.",
+          "Assess responsiveness to child’s emotional needs.",
+          "Check ability to validate child’s feelings appropriately.",
+          "Ensure listening promotes trust and communication.",
+        ],
+      },
+      {
+        id: 118,
+        title: "Parent/Caregiver's Understanding of Impact of Own Behavior on Children",
+        help: [
+          "Assess awareness of how actions influence child’s development.",
+          "Evaluate ability to model positive behavior.",
+          "Check for recognition of negative patterns and corrective steps.",
+          "Ensure caregiver adjusts behavior to promote healthy growth.",
+        ],
+      },
+      {
+        id: 119,
+        title: "Empathy with Children",
+        help: [
+          "Assess caregiver’s ability to understand and share child’s feelings.",
+          "Evaluate responsiveness to distress or challenges.",
+          "Check use of supportive and nurturing communication.",
+          "Ensure empathy guides caregiving decisions.",
+        ],
+      },
+      {
+        id: 120,
+        title: "Ability to Communicate",
+        help: [
+          "Assess clarity and appropriateness of communication with child.",
+          "Evaluate consistency of messages and instructions.",
+          "Check encouragement of open expression and questions.",
+          "Ensure communication fosters emotional security and understanding.",
+        ],
+      },
+    ],
+  },
+  {
+    id: 6,
+    title: "Factors Contributing to Parent/Caregiver Resilience",
+    rows: [
+      {
+        id: 121,
+        title: "Physical Health",
+        help: [
+          "Determine caregiver’s general health and energy level.",
+          "Assess ability to meet child care demands consistently.",
+          "Check for chronic conditions affecting parenting.",
+          "Ensure self-care practices are sufficient to maintain resilience.",
+        ],
+      },
+      {
+        id: 122,
+        title: "Mental Health",
+        help: [
+          "Evaluate caregiver’s emotional stability and coping skills.",
+          "Check for stress, anxiety, or depression impacting parenting.",
+          "Assess access to professional mental health support.",
+          "Ensure caregiver’s mental health supports child’s well-being.",
+        ],
+      },
+      {
+        id: 123,
+        title: "Substance Use",
+        help: [
+          "Assess impact of alcohol or drug use on caregiving.",
+          "Check awareness of risks and safety measures.",
+          "Evaluate history of substance-related incidents affecting the child.",
+          "Ensure safe environment free from substance-related hazards.",
+        ],
+      },
+      {
+        id: 124,
+        title: "Developmental",
+        help: [
+          "Assess caregiver’s ability to learn and adapt to parenting challenges.",
+          "Check skills development and educational pursuits.",
+          "Evaluate willingness to seek knowledge or training.",
+          "Ensure child benefits from caregiver’s growth and adaptation.",
+        ],
+      },
+      {
+        id: 125,
+        title: "Parent/Caregiver Posttraumatic Reactions",
+        help: [
+          "Assess coping mechanisms for past trauma.",
+          "Check support systems to manage stress or triggers.",
+          "Evaluate impact on parenting consistency and emotional availability.",
+          "Ensure trauma reactions do not negatively impact child safety.",
+        ],
+      },
+      {
+        id: 126,
+        title: "Hygiene and Self-Care",
+        help: [
+          "Evaluate caregiver’s personal hygiene and grooming.",
+          "Assess consistency in maintaining a clean environment.",
+          "Check ability to manage daily routines effectively.",
+          "Ensure hygiene practices model positive behavior for the child.",
+        ],
+      },
+      {
+        id: 127,
+        title: "Independent Living Skills",
+        help: [
+          "Assess ability to plan, manage time, and complete daily tasks.",
+          "Evaluate problem-solving and decision-making skills.",
+          "Check organization of household and responsibilities.",
+          "Ensure skills support stable and consistent caregiving.",
+        ],
+      },
+      {
+        id: 128,
+        title: "Recreation",
+        help: [
+          "Assess engagement in leisure activities promoting stress relief.",
+          "Evaluate quality time spent with child in recreational settings.",
+          "Check caregiver’s ability to balance work, care, and personal time.",
+          "Ensure recreational activities benefit child development and bonding.",
+        ],
+      },
+    ],
+  },
+  {
+    id: 7,
+    title: "Commitment to Permanency Plan Goal - Biological Parent",
+    rows: [
+      {
+        id: 133,
+        title: "Relationship/Contact with Caseworker",
+        help: [
+          "Determine frequency and quality of communication with caseworker.",
+          "Assess openness and honesty in sharing information.",
+          "Check responsiveness to guidance and recommendations.",
+          "Ensure engagement promotes child’s safety and permanency goals.",
+        ],
+      },
+      {
+        id: 134,
+        title: "Involvement in Treatment",
+        help: [
+          "Assess active participation in recommended programs or therapies.",
+          "Check follow-through on treatment goals and assignments.",
+          "Evaluate understanding of treatment purpose and impact.",
+          "Ensure involvement aligns with child’s best interest.",
+        ],
+      },
+      {
+        id: 135,
+        title: "Parent Involvement/Parent Participation",
+        help: [
+          "Evaluate engagement in child’s daily care and decision-making.",
+          "Check consistency and reliability in participation.",
+          "Assess initiative in learning and improving parenting skills.",
+          "Ensure involvement positively impacts child development.",
+        ],
+      },
+      {
+        id: 137,
+        title: "Responsibility in Maltreatment",
+        help: [
+          "Assess acknowledgment and understanding of past maltreatment.",
+          "Check willingness to accept responsibility and corrective action.",
+          "Evaluate steps taken to prevent recurrence.",
+          "Ensure accountability improves child safety and family functioning.",
+        ],
+      },
+      {
+        id: 138,
+        title: "Relationship with Abuser(s)",
+        help: [
+          "Determine current interactions with alleged abuser(s).",
+          "Assess safety and risk mitigation measures for child.",
+          "Check support from authorities or professionals if needed.",
+          "Ensure relationship does not compromise child’s well-being.",
+        ],
+      },
+      {
+        id: 139,
+        title: "History of Maltreatment of Children",
+        help: [
+          "Assess documented history and patterns of abuse or neglect.",
+          "Check for intervention or correction measures taken.",
+          "Evaluate impact on child’s emotional, physical, and social development.",
+          "Ensure protective measures are consistently enforced.",
+        ],
+      },
+    ],
+  },
+];
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleConcreteChange = (rowId, key, value) => {
+    setConcreteData((prev) => ({
+      ...prev,
+      [rowId]: { ...prev[rowId], [key]: value },
+    }));
+  };
+
+  const handleMouseEnter = (row) => setHoveredRow(row);
+  const handleMouseLeave = () => setHoveredRow(null);
+  const handleMouseMove = (e) => {
+    setTooltipPosition({ x: e.clientX + 20, y: e.clientY + 20 });
+  };
+
+  const isFormValid =
+    formData.caseId.trim() !== "" &&
+    formData.caseName.trim() !== "" &&
+    formData.dateOfAssessment.trim() !== "" &&
+    formData.workerName.trim() !== "";
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const handleSubmit = async (statusType) => {
+    if (!isFormValid) {
+      alert("⚠️ Please fill all required fields before saving!");
+      return;
+    }
+    try {
+      const payload = {
+        ...formData,
+        status: statusType,
+        concreteSupports: concreteData,
+      };
+      await axios.post("http://localhost:5000/api/basic-info", payload);
+      alert(`✅ Data saved successfully as "${statusType}"!`);
+      setFormData({
+        caseId: "",
+        caseName: "",
+        dateOfAssessment: "",
+        workerName: "",
+        personId: "",
+        memberName: "",
+        memberDob: "",
+        memberRole: "",
+      });
+      setConcreteData({});
+    } catch (error) {
+      console.error("❌ Error:", error);
+      alert("Error saving data");
+    }
+  };
+
+  return (
+    <div
+      style={{
+        backgroundColor: "#f9f9f9",
+        border: "1px solid #ddd",
+        borderRadius: "10px",
+        padding: "20px",
+        maxWidth: "950px",
+        margin: "40px auto",
+        position: "relative",
+      }}
+    >
+      <h3 style={{ borderBottom: "3px solid #007bff", paddingBottom: "5px" }}>
+        Basic Information
+      </h3>
+
+      <form onSubmit={(e) => e.preventDefault()} style={{ marginTop: "20px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "15px",
+          }}
+        >
+          {[
+            { label: "Case ID *", name: "caseId", type: "text" },
+            { label: "Case Name *", name: "caseName", type: "text" },
+            {
+              label: "Date of Assessment *",
+              name: "dateOfAssessment",
+              type: "date",
+              min: today,
+              max: today,
+            },
+            { label: "Worker Name *", name: "workerName", type: "text" },
+            { label: "Person ID", name: "personId", type: "text" },
+            { label: "Member Name", name: "memberName", type: "text" },
+            { label: "Member Date of Birth", name: "memberDob", type: "date" },
+            { label: "Member Role", name: "memberRole", type: "text" },
+          ].map((field) => (
+            <div key={field.name}>
+              <label>{field.label}</label>
+              <input
+                type={field.type}
+                name={field.name}
+                value={formData[field.name]}
+                onChange={handleChange}
+                required={field.label.includes("*")}
+                min={field.min}
+                max={field.max}
+                style={{
+                  border:
+                    field.label.includes("*") && formData[field.name].trim() === ""
+                      ? "1px solid red"
+                      : "1px solid #ccc",
+                  borderRadius: "5px",
+                  padding: "5px",
+                  width: "100%",
+                }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {sections.map((section) => (
+          <div key={section.id} style={{ marginTop: "40px" }}>
+            <div
+              onClick={() => setIsOpen(isOpen === section.id ? null : section.id)}
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                backgroundColor: "#9B9AC6",
+                color: "white",
+                padding: "10px 10px",
+                borderRadius: "5px",
+                fontWeight: "bold",
+                fontSize: "15px",
+              }}
+            >
+              <span>
+                {isOpen === section.id ? "▼" : "▶"} {section.title}
+              </span>
+            </div>
+
+            {isOpen === section.id && (
+              <div style={{ marginTop: "25px", overflowX: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "#9B9AC6", color: "white" }}>
+                      <th style={thStyle}>Previous Score</th>
+                      <th style={thStyle}>0</th>
+                      <th style={thStyle}>1</th>
+                      <th style={thStyle}>2</th>
+                      <th style={thStyle}>3</th>
+                      <th style={thStyle}>Unk</th>
+                      <th style={thStyle}>N/A</th>
+                      <th style={thStyle}>Factor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {section.rows.map((row, index) => (
+                      <tr
+                        key={row.id}
+                        style={{
+                          backgroundColor: index % 2 !== 0 ? "#DFE6F8" : "white",
+                          borderBottom: "1px solid #ccc",
+                        }}
+                      >
+                        <td style={tdRadioStyle}></td>
+                        {["0", "1", "2", "3", "Unk", "N/A"].map((score) => (
+                          <td key={score} style={tdRadioStyle}>
+                            <input
+                              type="radio"
+                              name={`score-${section.id}-${row.id}`}
+                              value={score}
+                              checked={concreteData[row.id]?.score === score}
+                              onChange={(e) =>
+                                handleConcreteChange(row.id, "score", e.target.value)
+                              }
+                            />
+                          </td>
+                        ))}
+                        <td style={{ padding: "8px", width: "55%" }}>
+                          <div style={{ color: "#333" }}>
+                            <strong
+                              onMouseEnter={() => handleMouseEnter(row)}
+                              onMouseLeave={handleMouseLeave}
+                              onMouseMove={handleMouseMove}
+                              style={{ cursor: "help", color: "#333" }}
+                            >
+                              {row.id}. {row.title}
+                            </strong>
+                            <div style={{ marginTop: "6px" }}>
+                              <label style={{ fontWeight: "bold" }}>Describe:</label>
+                              <textarea
+                                rows="2"
+                                style={{
+                                  width: "100%",
+                                  borderRadius: "5px",
+                                  border: "1px solid #ccc",
+                                  padding: "5px",
+                                  marginTop: "5px",
+                                  resize: "vertical",
+                                }}
+                                value={concreteData[row.id]?.desc || ""}
+                                onChange={(e) =>
+                                  handleConcreteChange(row.id, "desc", e.target.value)
+                                }
+                              ></textarea>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div
+          style={{
+            display: "flex",
+            gap: "15px",
+            marginTop: "25px",
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => handleSubmit("Draft")}
+            style={{
+              ...buttonStyle("#6c757d"),
+              opacity: isFormValid ? 1 : 0.6,
+              cursor: isFormValid ? "pointer" : "not-allowed",
+            }}
+            disabled={!isFormValid}
+          >
+            Save as Draft
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSubmit("Completed")}
+            style={{
+              ...buttonStyle("#007bff"),
+              opacity: isFormValid ? 1 : 0.6,
+              cursor: isFormValid ? "pointer" : "not-allowed",
+            }}
+            disabled={!isFormValid}
+          >
+            Complete
+          </button>
+        </div>
+      </form>
+
+      {hoveredRow && (
+        <div
+          style={{
+            position: "fixed",
+            top: tooltipPosition.y,
+            left: tooltipPosition.x,
+            transform: "translate(10px, 10px)",
+            backgroundColor: "white",
+            color: "black",
+            borderRadius: "8px",
+            boxShadow: "0px 6px 15px rgba(0,0,0,0.25)",
+            pointerEvents: "none",
+            zIndex: 9999,
+            minWidth: "270px",
+            maxWidth: "320px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#9B9AC6",
+              color: "white",
+              padding: "10px",
+              borderTopLeftRadius: "8px",
+              borderTopRightRadius: "8px",
+              fontWeight: "bold",
+              fontSize: "15px",
+            }}
+          >
+            {hoveredRow.title}
+          </div>
+
+          <div style={{ padding: "10px", backgroundColor: "white" }}>
+            <ul style={{ margin: 0, paddingLeft: "20px" }}>
+              {hoveredRow.help.map((line, index) => (
+                <li key={index} style={{ fontSize: "13px", color: "black" }}>
+                  <strong>{index}.</strong> {line}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const thStyle = {
+  padding: "10px",
+  textAlign: "center",
+  border: "1px solid #ccc",
+  fontWeight: "bold",
+};
+const tdRadioStyle = {
+  textAlign: "center",
+  padding: "10px",
+  borderRight: "1px solid #ddd",
+};
+const buttonStyle = (bgColor) => ({
+  padding: "10px 20px",
+  backgroundColor: bgColor,
+  color: "white",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+});
+
+export default CombinedForm;

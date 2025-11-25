@@ -1,0 +1,355 @@
+import React, { useState } from "react";
+import axios from "axios";
+
+const CombinedForm = () => {
+  // ===== Basic Info State =====
+  const [formData, setFormData] = useState({
+    caseId: "",
+    caseName: "",
+    dateOfAssessment: "",
+    workerName: "",
+    personId: "",
+    memberName: "",
+    memberDob: "",
+    memberRole: "",
+  });
+
+  // ===== Concrete Supports State =====
+  const [isOpen, setIsOpen] = useState(null);
+  const [selectedHelp, setSelectedHelp] = useState(null);
+  const [concreteData, setConcreteData] = useState({}); // Stores selected scores & descriptions
+
+  // ===== Dynamic Sections =====
+  const sections = [
+    {
+      id: 1,
+      title: "Identification and Use of Concrete Supports in Times of Need",
+      rows: [
+        { id: 105, title: "Involvement with Care", help: "Measures how engaged and cooperative the caregiver is with the care process." },
+        { id: 106, title: "Parent/Caregiver’s Knowledge of Rights and Responsibilities", help: "Assesses understanding of rights, duties, and legal obligations as a caregiver." },
+        { id: 107, title: "Financial Status", help: "Examines stability of income, budgeting, and ability to meet basic needs." },
+        { id: 108, title: "Organization", help: "Evaluates planning, scheduling, and ability to manage tasks effectively." },
+        { id: 109, title: "Resources", help: "Checks access to concrete supports such as food, housing, transportation, etc." },
+        { id: 110, title: "Knowledge of Social Service Options", help: "Determines awareness and understanding of available support services." },
+        { id: 111, title: "Residential Stability", help: "Assesses consistency and security of the living situation." },
+        { id: 112, title: "Job Functioning", help: "Evaluates employment stability, job performance, and ability to sustain work." },
+        { id: 113, title: "Social Support", help: "Measures the availability and quality of support from friends, family, and community." },
+      ],
+    },
+    {
+      id: 2,
+      title: "Fire and Burn Safety",
+      rows: [
+        { id: 201, title: "Presence of Smoke Detectors", help: "Determines if smoke alarms are installed and functional." },
+        { id: 202, title: "Emergency Exit Awareness", help: "Checks if family members know the evacuation plan." },
+        { id: 203, title: "Child Safety Around Fire", help: "Assesses supervision and safety education for children regarding fire hazards." },
+      ],
+    },
+    {
+      id: 3,
+      title: "Physical Environment Safety",
+      rows: [
+        { id: 301, title: "Cleanliness and Sanitation", help: "Evaluates hygiene and maintenance of the living environment." },
+        { id: 302, title: "Structural Safety", help: "Assesses home structure for hazards like leaks or broken stairs." },
+        { id: 303, title: "Electrical Safety", help: "Checks for exposed wiring or unsafe outlets." },
+      ],
+    },
+  ];
+
+  // ===== Handlers =====
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleConcreteChange = (rowId, key, value) => {
+    setConcreteData((prev) => ({
+      ...prev,
+      [rowId]: {
+        ...prev[rowId],
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleRowClick = (row) => {
+    setSelectedHelp(row);
+  };
+
+  // ===== Validation =====
+  const isFormValid =
+    formData.caseId.trim() !== "" &&
+    formData.caseName.trim() !== "" &&
+    formData.dateOfAssessment.trim() !== "" &&
+    formData.workerName.trim() !== "";
+
+  // ===== Submit Handler =====
+  const handleSubmit = async (statusType) => {
+    if (!isFormValid) {
+      alert("⚠️ Please fill all required fields before saving!");
+      return;
+    }
+
+    try {
+      const payload = {
+        ...formData,
+        status: statusType,
+        concreteSupports: concreteData,
+      };
+
+      await axios.post("http://localhost:5000/api/basic-info", payload);
+
+      alert(`✅ Data saved successfully as "${statusType}"!`);
+      setFormData({
+        caseId: "",
+        caseName: "",
+        dateOfAssessment: "",
+        workerName: "",
+        personId: "",
+        memberName: "",
+        memberDob: "",
+        memberRole: "",
+      });
+      setConcreteData({});
+    } catch (error) {
+      console.error("❌ Error:", error);
+      alert("Error saving data");
+    }
+  };
+
+  // ===== UI =====
+  return (
+    <div
+      style={{
+        backgroundColor: "#f9f9f9",
+        border: "1px solid #ddd",
+        borderRadius: "10px",
+        padding: "20px",
+        maxWidth: "950px",
+        margin: "40px auto",
+      }}
+    >
+      <h3 style={{ borderBottom: "3px solid #007bff", paddingBottom: "5px" }}>
+        Basic Information
+      </h3>
+
+      {/* === BASIC INFO FORM === */}
+      <form onSubmit={(e) => e.preventDefault()} style={{ marginTop: "20px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "15px",
+          }}
+        >
+          {[
+            { label: "Case ID *", name: "caseId", type: "text" },
+            { label: "Case Name *", name: "caseName", type: "text" },
+            { label: "Date of Assessment *", name: "dateOfAssessment", type: "date" },
+            { label: "Worker Name *", name: "workerName", type: "text" },
+            { label: "Person ID", name: "personId", type: "text" },
+            { label: "Member Name", name: "memberName", type: "text" },
+            { label: "Member Date of Birth", name: "memberDob", type: "date" },
+            { label: "Member Role", name: "memberRole", type: "text" },
+          ].map((field) => (
+            <div key={field.name}>
+              <label>{field.label}</label>
+              <input
+                type={field.type}
+                name={field.name}
+                value={formData[field.name]}
+                onChange={handleChange}
+                required={field.label.includes("*")}
+                style={{
+                  border:
+                    field.label.includes("*") && formData[field.name].trim() === ""
+                      ? "1px solid red"
+                      : "1px solid #ccc",
+                  borderRadius: "5px",
+                  padding: "5px",
+                  width: "100%",
+                }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* === MULTIPLE DROPDOWN SECTIONS === */}
+        {sections.map((section) => (
+          <div key={section.id} style={{ marginTop: "40px" }}>
+            <div
+              onClick={() => setIsOpen(isOpen === section.id ? null : section.id)}
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                backgroundColor: "#9A98CA",
+                color: "white",
+                padding: "12px 18px",
+                borderRadius: "5px",
+                fontWeight: "bold",
+                fontSize: "16px",
+              }}
+            >
+              <span>{section.title}</span>
+              <span>{isOpen === section.id ? "▲" : "▼"}</span>
+            </div>
+
+            {isOpen === section.id && (
+              <div style={{ marginTop: "25px", overflowX: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "#9A98CA", color: "white" }}>
+                      <th style={thStyle}>Previous Score</th>
+                      <th style={thStyle}>0</th>
+                      <th style={thStyle}>1</th>
+                      <th style={thStyle}>2</th>
+                      <th style={thStyle}>3</th>
+                      <th style={thStyle}>Unk</th>
+                      <th style={thStyle}>N/A</th>
+                      <th style={thStyle}>Factor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {section.rows.map((row, index) => (
+                      <tr
+                        key={row.id}
+                        style={{
+                          backgroundColor: index % 2 !== 0 ? "#DFE6F8" : "white",
+                          borderBottom: "1px solid #ccc",
+                        }}
+                      >
+                        <td style={tdRadioStyle}></td>
+                        {[0, 1, 2, 3].map((score) => (
+                          <td key={score} style={tdRadioStyle}>
+                            <input
+                              type="radio"
+                              name={`score-${section.id}-${row.id}`}
+                              value={score}
+                              checked={concreteData[row.id]?.score === score}
+                              onChange={(e) =>
+                                handleConcreteChange(row.id, "score", parseInt(e.target.value))
+                              }
+                            />
+                          </td>
+                        ))}
+                        <td style={tdRadioStyle}></td>
+                        <td style={tdRadioStyle}></td>
+
+                        <td style={{ padding: "8px", width: "55%" }}>
+                          <div
+                            onClick={() => handleRowClick(row)}
+                            style={{ cursor: "pointer", color: "#333" }}
+                          >
+                            <strong>
+                              {row.id}. {row.title}
+                            </strong>
+                            <div style={{ marginTop: "6px" }}>
+                              <label style={{ fontWeight: "bold" }}>Describe:</label>
+                              <textarea
+                                rows="2"
+                                style={{
+                                  width: "100%",
+                                  borderRadius: "5px",
+                                  border: "1px solid #ccc",
+                                  padding: "5px",
+                                  marginTop: "5px",
+                                  resize: "vertical",
+                                }}
+                                value={concreteData[row.id]?.desc || ""}
+                                onClick={(e) => e.stopPropagation()} // prevent help box
+                                onChange={(e) =>
+                                  handleConcreteChange(row.id, "desc", e.target.value)
+                                }
+                              ></textarea>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* === ACTION BUTTONS === */}
+        <div
+          style={{
+            display: "flex",
+            gap: "15px",
+            marginTop: "25px",
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => handleSubmit("Draft")}
+            style={{
+              ...buttonStyle("#6c757d"),
+              opacity: isFormValid ? 1 : 0.6,
+              cursor: isFormValid ? "pointer" : "not-allowed",
+            }}
+            disabled={!isFormValid}
+          >
+            Save as Draft
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSubmit("Completed")}
+            style={{
+              ...buttonStyle("#007bff"),
+              opacity: isFormValid ? 1 : 0.6,
+              cursor: isFormValid ? "pointer" : "not-allowed",
+            }}
+            disabled={!isFormValid}
+          >
+            Complete
+          </button>
+        </div>
+      </form>
+
+      {/* === FIXED HELP BOX === */}
+      {selectedHelp && (
+        <div style={fixedRightBoxStyle}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h4 style={{ margin: 0 }}>{selectedHelp.title}</h4>
+            <button onClick={() => setSelectedHelp(null)} style={closeBtnStyle}>
+              ❌
+            </button>
+          </div>
+          <p style={{ marginTop: "10px" }}>{selectedHelp.help}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ===== Styles =====
+const thStyle = { padding: "10px", textAlign: "center", border: "1px solid #ccc", fontWeight: "bold" };
+const tdRadioStyle = { textAlign: "center", padding: "10px", borderRight: "1px solid #ddd" };
+const closeBtnStyle = { background: "transparent", border: "none", cursor: "pointer", fontSize: "18px" };
+const fixedRightBoxStyle = {
+  position: "fixed",
+  top: "100px",
+  right: "20px",
+  width: "300px",
+  backgroundColor: "white",
+  padding: "15px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+  zIndex: 1000,
+};
+const buttonStyle = (bgColor) => ({
+  padding: "10px 20px",
+  backgroundColor: bgColor,
+  color: "white",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+});
+
+export default CombinedForm;
