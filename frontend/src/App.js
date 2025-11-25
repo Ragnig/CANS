@@ -21,7 +21,7 @@ import ViewForm from "./components/ViewForm";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/Dashboard">
       <Routes>
         {/* Home → Your Main Form */}
         <Route path="/" element={<BasicInfoForm />} />
