@@ -1,12 +1,12 @@
 
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { Checkmark20Filled, Warning20Filled } from "@fluentui/react-icons";
+import { Checkmark20Filled, Warning20Filled, CheckmarkCircle20Filled, Circle20Regular, ErrorCircle20Filled } from "@fluentui/react-icons";
 import { demoSections } from "./demosection";
 import styles from "./formstyle";
 import SubmitSuccessScreen from "./SubmitSuccessScreen";
 import ReviewScreen from "./ReviewScreen";
 // import { saveFormToServer } from "../api/saveHandlers";
-const API_BASE = "http://localhost:5000";
+// const API_BASE = "http://localhost:5000";
 /** -------- Demo data placeholders (keep or replace) -------- **/
 const demoOverview = {
   caseId: "",
@@ -25,7 +25,7 @@ const requiredOverviewFields = ["caseId", "caseName", "personId", "memberName", 
 const badgesPerPage = 15;
 
 /* -------------------- COMPONENT -------------------- */
-export default function BasicInfoForm({ overview = demoOverview, sections = demoSections, onClose }) {
+export default function BasicInfoForm({ overview = demoOverview, sections = demoSections, onClose, onSave, draftData }) {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
   const todayIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -344,22 +344,23 @@ function formatSchemaJSON(overview, answers) {
   // Generic save to backend/localStorage (unchanged)
   async function saveDraftPayload(payload) {
     try {
-      if (typeof API_BASE !== "undefined") {
-        const res = await fetch(`${API_BASE}/api/basic-info`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          console.warn("Save failed", res.status, data);
-          return { ok: false, data };
-        }
-        return { ok: true, data };
-      } else {
+      // Backend connectivity commented out - using localStorage only
+      // if (typeof API_BASE !== "undefined") {
+      //   const res = await fetch(`${API_BASE}/api/basic-info`, {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify(payload),
+      //   });
+      //   const data = await res.json();
+      //   if (!res.ok) {
+      //     console.warn("Save failed", res.status, data);
+      //     return { ok: false, data };
+      //   }
+      //   return { ok: true, data };
+      // } else {
         localStorage.setItem("cans_autosave", JSON.stringify(payload));
         return { ok: true, data: { local: true } };
-      }
+      // }
     } catch (err) {
       console.error("saveDraftPayload error", err);
       return { ok: false, data: { error: err.message || String(err) } };
@@ -528,8 +529,24 @@ function formatSchemaJSON(overview, answers) {
       if (res.data?.id) setServerDocId(res.data.id);
       setIsDirty(false);
       setLastSavedAt(new Date().toISOString());
-      alert("✅ Saved as draft!");
+      
       savedOk = true;
+      
+      // Call onSave callback to update dashboard
+      if (typeof onSave === "function") {
+        const assessmentId = draftData?.id || serverDocId || res.data?.id || `CANS-${Date.now()}`;
+        onSave({
+          id: assessmentId,
+          caseId: formData.caseId,
+          caseName: formData.caseName,
+          status: "Draft",
+          createdBy: formData.workerName || "Current User",
+          overview: formData,
+          answers: answers,
+          data: payload
+        });
+      }
+      
     } catch (err) {
       console.error("Save draft error:", err);
       alert("Error while saving draft: " + (err.message || String(err)));
@@ -600,6 +617,21 @@ function formatSchemaJSON(overview, answers) {
       isSubmittedRef.current = true;
       stopAutosave();
 
+      // Call onSave callback to update dashboard
+      if (typeof onSave === "function") {
+        const assessmentId = draftData?.id || serverDocId || res.data?.id || `CANS-${Date.now()}`;
+        onSave({
+          id: assessmentId,
+          caseId: formData.caseId,
+          caseName: formData.caseName,
+          status: "Completed",
+          createdBy: formData.workerName || "Current User",
+          overview: formData,
+          answers: answers,
+          data: payload
+        });
+      }
+      
       // Show success screen instead of alert
       // alert("Form is submitted Successfully");
     } catch (err) {
@@ -721,11 +753,25 @@ function formatSchemaJSON(overview, answers) {
                 key={s.id}
                 type="button"
                 style={styles.leftBtn(active)}
-                onClick={() => { onSelectSection(s.id); setShowWarningScreen(false); }}
+                onClick={() => { 
+                  if (showReviewScreen) {
+                    // Exit review screen and go to selected section
+                    setShowReviewScreen(false);
+                    const r = sectionRanges.get(s.id);
+                    if (r) {
+                      setActiveSectionId(s.id);
+                      setCurrentGlobalIndex(r.start);
+                      setBubblePageIndex(0);
+                    }
+                  } else {
+                    onSelectSection(s.id); 
+                    setShowWarningScreen(false);
+                  }
+                }}
                 title={s.title}
               >
                 <span style={styles.sectionBadge(completed, incomplete)}>
-                  {completed ? <Checkmark20Filled /> : incomplete ? <Warning20Filled /> : ""}
+                  {completed ? <Checkmark20Filled style={{ width: 16, height: 16 }} /> : incomplete ? <Warning20Filled style={{ width: 16, height: 16 }} /> : ""}
                 </span>
                 <span style={styles.leftBtnText}>{s.title}</span>
               </button>
@@ -754,7 +800,7 @@ function formatSchemaJSON(overview, answers) {
           ) : showWarningScreen ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start", padding: 48, height: "100%", gap: 24 }}>
               <div style={{ width: 64, height: 64, borderRadius: 32, background: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-                <Warning20Filled style={{ width: 32, height: 32 }} />
+                <Warning20Filled style={{ width: 48, height: 48, color: '#f59e0b' }} />
               </div>
               <h2 style={{ fontSize: 24, fontWeight: 400, color: "#111827", margin: 0 }}>
                 {incompleteSections.size} {incompleteSections.size === 1 ? 'section requires' : 'sections require'} your attention...
@@ -765,6 +811,9 @@ function formatSchemaJSON(overview, answers) {
             </div>
           ) : showReviewScreen ? (
             <ReviewScreen 
+              sections={visibleSections}
+              answers={answers}
+              overview={formData}
               onBack={() => {
                 setShowReviewScreen(false);
                 // Go to first section, first question
@@ -777,6 +826,17 @@ function formatSchemaJSON(overview, answers) {
               }} 
               onSubmit={handleComplete}
               isSaving={isSaving}
+              activeSectionId={activeSectionId}
+              onSectionChange={(sectionId) => {
+                // Exit review screen and go to the selected section
+                setShowReviewScreen(false);
+                const r = sectionRanges.get(sectionId);
+                if (r) {
+                  setActiveSectionId(sectionId);
+                  setCurrentGlobalIndex(r.start);
+                  setBubblePageIndex(0);
+                }
+              }}
             />
           ) : (
             <>
@@ -885,7 +945,7 @@ function formatSchemaJSON(overview, answers) {
                           <textarea
                             style={{
                               ...styles.describeArea,
-                              border: missingDescriptions.has(currentRow.id) ? "1px solid #131212ff" : "1px solid #d1d5db",
+                              border: missingDescriptions.has(currentRow.id) ? "1px solid #6b7280" : "1px solid #d1d5db",
                             }}
                             placeholder="Explain the description here"
                             value={(answers[currentRow.id] || {}).description || ""}
@@ -913,7 +973,7 @@ function formatSchemaJSON(overview, answers) {
                 disabled={saveDisabled}
                 aria-disabled={saveDisabled}
               >
-                {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft & Close"}
+                {isSaving ? "Saving..." : isAutosaving ? "Autosaving..." : "Save as Draft & Close Form"}
               </button>
             </div>
 
