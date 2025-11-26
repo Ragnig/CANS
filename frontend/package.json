@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://ragnig.github.io/Dashboard",
+  "homepage": "https://ragnig.github.io/CANS",
   "dependencies": {
     "@fluentui/react-icons": "^2.0.315",
     "@testing-library/dom": "^10.4.1",
