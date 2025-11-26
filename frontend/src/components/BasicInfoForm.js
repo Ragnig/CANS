@@ -800,7 +800,7 @@ function formatSchemaJSON(overview, answers) {
           ) : showWarningScreen ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start", padding: 48, height: "100%", gap: 24 }}>
               <div style={{ width: 64, height: 64, borderRadius: 32, background: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-                <Warning20Filled style={{ width: 48, height: 48, color: '#f59e0b' }} />
+                <Warning20Filled style={{ width: 32, height: 32, color: '#fff' }} />
               </div>
               <h2 style={{ fontSize: 24, fontWeight: 400, color: "#111827", margin: 0 }}>
                 {incompleteSections.size} {incompleteSections.size === 1 ? 'section requires' : 'sections require'} your attention...
